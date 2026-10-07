@@ -583,23 +583,36 @@ def draw_coffee(img, d, x0, x1, top, bottom, beans, now):
     y += 30
     hrule(d, y - 14, x0, x1)
 
-    # Key / value rows (Grams, Roast, Ratio, Time, ...): gray label, large bold value.
-    lf, vf = font("regular", 32), font("bold", 46)
+    # Key / value rows (Grams, Grind, Roast, ...): gray label, large bold value.
+    # Use the roomiest layout where every row fits; the last one drops rows that don't.
     if not b["meta"]:
         return
-    label_w = min(max(text_w(k, lf) for k, _ in b["meta"]) + 28, width * 0.42)
-    row_gap, line_h = 26, 56
-    for k, v in b["meta"]:
+    layouts = [dict(vsize=46, row_gap=26, max_lines=2), dict(vsize=42, row_gap=14, max_lines=2),
+               dict(vsize=40, row_gap=10, max_lines=1)]
+    for n, cfg in enumerate(layouts):
+        if _bean_rows(None, b["meta"], x0, width, y, bottom, mx, my, **cfg) or n == len(layouts) - 1:
+            _bean_rows(d, b["meta"], x0, width, y, bottom, mx, my, **cfg)
+            return
+
+
+def _bean_rows(d, meta, x0, width, y, bottom, mx, my, vsize, row_gap, max_lines) -> bool:
+    """Draw (or with d=None, measure) the key/value rows. Returns True if all rows fit."""
+    lf, vf = font("regular", 32), font("bold", vsize)
+    line_h = vsize + 10
+    label_w = min(max(text_w(k, lf) for k, _ in meta) + 28, width * 0.42)
+    for k, v in meta:
         avail = width - label_w
-        if y + line_h * 2 > my:  # this row may reach down beside the cup
+        if y + line_h * max_lines > my:  # this row may reach down beside the cup
             avail = mx - 20 - (x0 + label_w)
-        vlines = wrap(v, vf, avail, max_lines=2)
+        vlines = wrap(v, vf, avail, max_lines=max_lines)
         if y + 14 + line_h * len(vlines) > bottom:
-            break
-        d.text((x0, y + 46), ellipsize(k, lf, label_w - 16), font=lf, fill=DARK, anchor="ls")
-        for i, ln in enumerate(vlines):
-            d.text((x0 + label_w, y + 46 + i * line_h), ln, font=vf, fill=BLACK, anchor="ls")
+            return False
+        if d is not None:
+            d.text((x0, y + vsize), ellipsize(k, lf, label_w - 16), font=lf, fill=DARK, anchor="ls")
+            for i, ln in enumerate(vlines):
+                d.text((x0 + label_w, y + vsize + i * line_h), ln, font=vf, fill=BLACK, anchor="ls")
         y += line_h * len(vlines) + row_gap
+    return True
 
 
 # --------------------------------------------------------------------------

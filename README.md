@@ -7,7 +7,7 @@ An always-on e-ink dashboard for a jailbroken Kindle Paperwhite 5: Boston weathe
 Edit these files on GitHub (the web editor is fine, and you can tick to-do boxes there):
 
 - `todo.md`: `- [ ] item` for open items, `- [x] item` for done ones.
-- `coffee.md`: one `## Bean name` per bean, then `- Key: value` lines (Grams, Roast, Ratio, Time). The featured bean rotates daily.
+- `coffee.md`: one `## Bean name` per bean, then `- Key: value` lines (Grams, Grind, Roast, Ratio, Time). The featured bean rotates daily.
 
 Each edit triggers a new render. The Kindle downloads the latest image at 5 minutes past every hour.
 
