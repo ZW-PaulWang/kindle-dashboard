@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the Kindle e-ink dashboard (weather, to-do, coffee recipe) to a PNG.
+"""Render the Kindle e-ink dashboard (weather, to-do, coffee of the day) to a PNG.
 
 Target: Kindle Paperwhite 5 (11th gen), 1236x1648 portrait, 16 gray levels.
 Dependencies: Pillow + Python stdlib only.
@@ -273,35 +273,30 @@ def load_todos(path: Path) -> tuple[list[str], list[str]]:
 
 
 META_RE = re.compile(r"^\s*[-*+]\s+([^:]{1,40}?)\s*:\s*(.+?)\s*$")
-STEP_RE = re.compile(r"^\s*\d+[.)]\s+(.+?)\s*$")
 
 
-def load_recipes(path: Path) -> list[dict]:
-    recipes: list[dict] = []
+def load_beans(path: Path) -> list[dict]:
+    beans: list[dict] = []
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except Exception as e:  # noqa: BLE001
         warn(f"could not read {path}: {e}")
-        return recipes
+        return beans
     cur = None
     for line in lines:
         if line.startswith("## "):
-            cur = {"name": clean_md(line[3:]), "meta": [], "steps": []}
-            recipes.append(cur)
+            cur = {"name": clean_md(line[3:]), "meta": []}
+            beans.append(cur)
             continue
         if line.startswith("#"):
             cur = None if not line.startswith("###") else cur
             continue
         if cur is None:
             continue
-        m = STEP_RE.match(line)
-        if m:
-            cur["steps"].append(clean_md(m.group(1)))
-            continue
         m = META_RE.match(line)
         if m:
             cur["meta"].append((clean_md(m.group(1)), clean_md(m.group(2))))
-    return [r for r in recipes if r["name"]]
+    return [b for b in beans if b["name"]]
 
 
 # --------------------------------------------------------------------------
@@ -560,90 +555,38 @@ def draw_todo(d, x0, x1, top, bottom, open_items, done_items):
 # --------------------------------------------------------------------------
 # Coffee section
 # --------------------------------------------------------------------------
-def draw_coffee(d, x0, x1, top, bottom, recipes, now):
-    if not recipes:
-        section_label(d, x0, top + 30, "Coffee of the day")
-        d.text((x0, top + 114), "No recipes yet.", font=font("italic", 38), fill=DARK, anchor="ls")
+def draw_coffee(d, x0, x1, top, bottom, beans, now):
+    section_label(d, x0, top + 30, "Coffee of the day")
+    if not beans:
+        d.text((x0, top + 114), "No beans yet.", font=font("italic", 38), fill=DARK, anchor="ls")
         d.text((x0, top + 164), "Add one to coffee.md", font=font("regular", 32), fill=DARK, anchor="ls")
         return
-    r = recipes[now.timetuple().tm_yday % len(recipes)]
-    section_label(d, x0, top + 30, "Coffee of the day")
-    # Try progressively more compact layouts until every step fits; the last
-    # one is used regardless (it truncates steps and shows "+N more steps").
-    configs = [
-        dict(name_lines=2, meta_lines=2, step_size=34),
-        dict(name_lines=2, meta_lines=1, step_size=34),
-        dict(name_lines=1, meta_lines=1, step_size=34),
-        dict(name_lines=1, meta_lines=1, step_size=32),
-    ]
-    for n, cfg in enumerate(configs):
-        last = n == len(configs) - 1
-        if _coffee_layout(None, r, x0, x1, top + 76, bottom, **cfg) or last:
-            _coffee_layout(d, r, x0, x1, top + 76, bottom, **cfg)
-            return
-
-
-def _coffee_layout(d, r, x0, x1, y, bottom, name_lines, meta_lines, step_size) -> bool:
-    """Lay out one recipe. With d=None only measures. Returns True if all steps fit."""
+    b = beans[now.timetuple().tm_yday % len(beans)]
     width = x1 - x0
+    y = top + 76
 
-    def text(*a, **k):
-        if d is not None:
-            d.text(*a, **k)
+    # Bean name: big and bold, up to two lines.
+    nf = font("bold", 52)
+    for ln in wrap(b["name"], nf, width, max_lines=2):
+        d.text((x0, y + 50), ln, font=nf, fill=BLACK, anchor="ls")
+        y += 64
+    y += 30
+    hrule(d, y - 14, x0, x1)
 
-    nf = font("bold", 48)
-    for ln in wrap(r["name"], nf, width, max_lines=name_lines):
-        text((x0, y + 44), ln, font=nf, fill=BLACK, anchor="ls")
-        y += 58
-    y += 14
-
-    # Key / value rows: gray label column, bold value column.
-    lf, vf = font("regular", 30), font("bold", 34)
-    if r["meta"]:
-        label_w = min(max(text_w(k, lf) for k, _ in r["meta"]) + 22, width * 0.4)
-        for k, v in r["meta"]:
-            vlines = wrap(v, vf, width - label_w, max_lines=meta_lines)
-            if y + 46 * len(vlines) > bottom:
-                break
-            text((x0, y + 34), ellipsize(k, lf, label_w - 16), font=lf, fill=DARK, anchor="ls")
-            for i, ln in enumerate(vlines):
-                text((x0 + label_w, y + 34 + i * 44), ln, font=vf, fill=BLACK, anchor="ls")
-            y += 46 * len(vlines)
-        y += 14
-
-    steps = r["steps"]
-    if not steps:
-        return True
-    if d is not None:
-        hrule(d, y, x0, x1)
-    y += 18
-    sf, numf, mf = font("regular", step_size), font("semibold", step_size), font("regular", 30)
-    lh = step_size + 10
-    more_h = 44
-    num_w = 44
-    tw = width - num_w
-    shown = 0
-    truncated = False
-    for i, step in enumerate(steps):
-        reserve = more_h if i < len(steps) - 1 else 0
-        max_fit = int((bottom - y - reserve) // lh)
-        full = wrap(step, sf, tw)
-        if max_fit < 1:
+    # Key / value rows (Grams, Roast, Ratio, Time, ...): gray label, large bold value.
+    lf, vf = font("regular", 32), font("bold", 46)
+    if not b["meta"]:
+        return
+    label_w = min(max(text_w(k, lf) for k, _ in b["meta"]) + 28, width * 0.42)
+    row_gap, line_h = 26, 56
+    for k, v in b["meta"]:
+        vlines = wrap(v, vf, width - label_w, max_lines=2)
+        if y + 14 + line_h * len(vlines) > bottom:
             break
-        lines = full if len(full) <= max_fit else wrap(step, sf, tw, max_lines=max_fit)
-        text((x0, y + step_size), f"{i + 1}", font=numf, fill=DARK, anchor="ls")
-        for j, ln in enumerate(lines):
-            text((x0 + num_w, y + step_size + j * lh), ln, font=sf, fill=BLACK, anchor="ls")
-        y += len(lines) * lh + 12
-        shown += 1
-        if len(lines) < len(full):
-            truncated = True
-            break
-    hidden = len(steps) - shown
-    if hidden and y + more_h - 12 <= bottom:
-        text((x0 + num_w, y + 30), f"+{hidden} more step{'s' if hidden > 1 else ''}",
-             font=mf, fill=DARK, anchor="ls")
-    return hidden == 0 and not truncated
+        d.text((x0, y + 46), ellipsize(k, lf, label_w - 16), font=lf, fill=DARK, anchor="ls")
+        for i, ln in enumerate(vlines):
+            d.text((x0 + label_w, y + 46 + i * line_h), ln, font=vf, fill=BLACK, anchor="ls")
+        y += line_h * len(vlines) + row_gap
 
 
 # --------------------------------------------------------------------------
@@ -677,7 +620,7 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     except Exception as e:  # noqa: BLE001  never let one section kill the image
         warn(f"to-do section failed ({e.__class__.__name__}: {e})")
     try:
-        draw_coffee(d, rx0, rx1, low_top, low_bottom, load_recipes(coffee_path), now)
+        draw_coffee(d, rx0, rx1, low_top, low_bottom, load_beans(coffee_path), now)
     except Exception as e:  # noqa: BLE001
         warn(f"coffee section failed ({e.__class__.__name__}: {e})")
 
