@@ -1,0 +1,12 @@
+{
+	"items": [
+	{
+		"name": "Dashboard",
+		"priority": 0,
+		"items": [
+			{"name": "Start dashboard", "priority": 1, "action": "/mnt/us/extensions/dashboard/bin/start.sh", "status": false},
+			{"name": "Test download (writes dashboard.log)", "priority": 2, "action": "/mnt/us/extensions/dashboard/bin/test.sh", "status": false}
+		]
+	}
+	]
+}

@@ -1,0 +1,51 @@
+name: Render dashboard
+
+on:
+  schedule:
+    - cron: "45 * * * *" # hourly; the Kindle downloads at :05
+  push:
+    branches: [main]
+    paths:
+      - todo.md
+      - coffee.md
+      - render/**
+      - fonts/**
+      - .github/workflows/render.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: render
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Pillow
+        run: pip install --quiet pillow
+
+      - name: Render
+        run: python render/render.py --out out/dashboard.png
+
+      # Publish as a single orphan commit so the repo history doesn't grow every hour.
+      - name: Publish to the output branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd out
+          git init -q -b output
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dashboard.png
+          git commit -q -m "Dashboard $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" output
