@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import sys
 import urllib.request
@@ -555,7 +556,46 @@ def draw_todo(d, x0, x1, top, bottom, open_items, done_items):
 # --------------------------------------------------------------------------
 # Coffee section
 # --------------------------------------------------------------------------
-def draw_coffee(d, x0, x1, top, bottom, beans, now):
+def coffee_mascot(size: int) -> Image.Image:
+    """A cute line-art coffee cup (face, blush, steam heart), drawn 4x and downsampled."""
+    S = 4
+    w, h = 200, 212  # design units; scaled to `size` px wide
+    im = Image.new("L", (w * S, h * S), WHITE)
+    m = ImageDraw.Draw(im)
+
+    def P(*xy):
+        return [v * S for v in xy]
+
+    lw = 7 * S
+    # Steam: two S-curves and a heart rising from the cup.
+    for cx, phase in ((58, 0.0), (122, math.pi)):
+        pts = [(cx + 6 * math.sin(t / 10 + phase), 74 - t) for t in range(0, 34)]
+        m.line([(x * S, y * S) for x, y in pts], fill=BLACK, width=5 * S, joint="curve")
+    heart = []
+    for i in range(0, 361, 4):
+        t = math.radians(i)
+        x = 16 * math.sin(t) ** 3
+        y = 13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t)
+        heart.append(((90 + x * 1.35) * S, (38 - y * 1.35) * S))
+    m.line(heart + heart[:2], fill=BLACK, width=5 * S, joint="curve")
+    # Saucer, handle, body, rim.
+    m.ellipse(P(8, 180, 192, 208), fill=WHITE, outline=BLACK, width=lw)
+    m.arc(P(124, 108, 184, 166), start=-80, end=80, fill=BLACK, width=lw)
+    m.rounded_rectangle(P(30, 88, 150, 190), radius=30 * S, fill=WHITE, outline=BLACK,
+                        width=lw, corners=(False, False, True, True))
+    m.ellipse(P(30, 76, 150, 102), fill=WHITE, outline=BLACK, width=lw)
+    m.ellipse(P(42, 82, 138, 96), fill=DARK)
+    # Face: shiny eyes, blush, little smile.
+    for ex in (68, 112):
+        m.ellipse(P(ex - 7, 122, ex + 7, 140), fill=BLACK)
+        m.ellipse(P(ex - 3, 125, ex + 2, 130), fill=WHITE)
+    for bx in (54, 126):
+        m.ellipse(P(bx - 10, 143, bx + 10, 153), fill=170)
+    m.arc(P(80, 134, 100, 154), start=20, end=160, fill=BLACK, width=5 * S)
+    return im.resize((size, round(size * h / w)), Image.LANCZOS)
+
+
+def draw_coffee(img, d, x0, x1, top, bottom, beans, now):
     section_label(d, x0, top + 30, "Coffee of the day")
     if not beans:
         d.text((x0, top + 114), "No beans yet.", font=font("italic", 38), fill=DARK, anchor="ls")
@@ -564,6 +604,11 @@ def draw_coffee(d, x0, x1, top, bottom, beans, now):
     b = beans[now.timetuple().tm_yday % len(beans)]
     width = x1 - x0
     y = top + 76
+
+    # Cartoon cup in the bottom-right corner; rows beside it wrap short of it.
+    mascot = coffee_mascot(170)
+    mx, my = int(x1 - mascot.width), int(bottom - mascot.height)
+    img.paste(mascot, (mx, my))
 
     # Bean name: big and bold, up to two lines.
     nf = font("bold", 52)
@@ -580,7 +625,10 @@ def draw_coffee(d, x0, x1, top, bottom, beans, now):
     label_w = min(max(text_w(k, lf) for k, _ in b["meta"]) + 28, width * 0.42)
     row_gap, line_h = 26, 56
     for k, v in b["meta"]:
-        vlines = wrap(v, vf, width - label_w, max_lines=2)
+        avail = width - label_w
+        if y + line_h * 2 > my:  # this row may reach down beside the cup
+            avail = mx - 20 - (x0 + label_w)
+        vlines = wrap(v, vf, avail, max_lines=2)
         if y + 14 + line_h * len(vlines) > bottom:
             break
         d.text((x0, y + 46), ellipsize(k, lf, label_w - 16), font=lf, fill=DARK, anchor="ls")
@@ -620,7 +668,7 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     except Exception as e:  # noqa: BLE001  never let one section kill the image
         warn(f"to-do section failed ({e.__class__.__name__}: {e})")
     try:
-        draw_coffee(d, rx0, rx1, low_top, low_bottom, load_beans(coffee_path), now)
+        draw_coffee(img, d, rx0, rx1, low_top, low_bottom, load_beans(coffee_path), now)
     except Exception as e:  # noqa: BLE001
         warn(f"coffee section failed ({e.__class__.__name__}: {e})")
 
