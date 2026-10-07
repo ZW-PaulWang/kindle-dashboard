@@ -1,6 +1,6 @@
 #!/bin/sh
 # Dashboard loop: stop the Kindle UI, show the dashboard, refresh hourly.
-# Tap the screen or press the power button to exit back to the normal Kindle UI.
+# Double-tap the screen to exit back to the normal Kindle UI.
 . /mnt/us/extensions/dashboard/bin/common.sh
 
 echo $$ >"$DIR/dashboard.pid"
@@ -15,7 +15,7 @@ restore_ui() {
     EXITING=1
     log "Exiting dashboard ($(cat /tmp/dashboard.input 2>/dev/null || echo signal)), restarting the Kindle UI"
     [ -n "$SLEEP_PID" ] && kill "$SLEEP_PID" 2>/dev/null
-    pkill -f "dd if=/dev/input/" 2>/dev/null
+    pkill -f "doubletap.lua" 2>/dev/null
     rm -f "$DIR/dashboard.pid" /tmp/dashboard.input
     lipc-set-prop com.lab126.powerd preventScreenSaver 0 2>/dev/null
     start lab126_gui 2>/dev/null || /etc/init.d/framework start
@@ -31,19 +31,28 @@ trap restore_ui USR1 INT HUP TERM
 lipc-set-prop com.lab126.powerd preventScreenSaver 1
 lipc-set-prop com.lab126.cmd wirelessEnable 1 2>/dev/null
 
-# Exit on any touch or button press: one blocking reader per input device signals us.
-# (evdev readers don't steal events, so this doesn't interfere with anything else.)
+# Exit on a double tap. The touchscreen is the input device that reports absolute
+# positions; its event path differs between units, so find it via sysfs.
+LUAJIT=/mnt/us/koreader/luajit
 watch_input() {
     rm -f /tmp/dashboard.input
-    for dev in /dev/input/event*; do
-        [ -e "$dev" ] || continue
+    if [ ! -x "$LUAJIT" ]; then
+        log "WARNING: $LUAJIT not found (is KOReader installed?), double-tap exit disabled"
+        return
+    fi
+    found=""
+    for caps in /sys/class/input/event*/device/capabilities/abs; do
+        [ "$(cat "$caps" 2>/dev/null)" = "0" ] && continue
+        ev="$(basename "$(dirname "$(dirname "$(dirname "$caps")")")")"
+        name="$(cat "/sys/class/input/$ev/device/name" 2>/dev/null)"
+        found="$found $ev"
+        log "Watching /dev/input/$ev ($name) for a double tap"
         (
-            dd if="$dev" of=/dev/null bs=64 count=1 2>/dev/null || exit 0
-            name="$(cat "/sys/class/input/$(basename "$dev")/device/name" 2>/dev/null)"
-            echo "$dev $name" >/tmp/dashboard.input
+            "$LUAJIT" "$DIR/bin/doubletap.lua" "/dev/input/$ev" >/tmp/dashboard.input 2>&1 || exit 0
             kill -USR1 $$
         ) &
     done
+    [ -z "$found" ] && log "WARNING: no touchscreen found, double-tap exit disabled"
 }
 
 wait_for_wifi() {
