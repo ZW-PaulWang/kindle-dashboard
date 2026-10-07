@@ -18,7 +18,18 @@ restore_ui() {
     pkill -f "doubletap.lua" 2>/dev/null
     rm -f "$DIR/dashboard.pid" /tmp/dashboard.input
     lipc-set-prop com.lab126.powerd preventScreenSaver 0 2>/dev/null
+    # The UI takes a while to come back; say so right away so the tap clearly registered.
+    show_notice "Leaving dashboard..." "The Kindle home screen will appear in about 30 seconds."
     start lab126_gui 2>/dev/null || /etc/init.d/framework start
+    # Once the UI answers, make sure we land on the home screen.
+    i=0
+    while [ $i -lt 120 ]; do
+        lipc-get-prop com.lab126.appmgrd activeApp >/dev/null 2>&1 && break
+        sleep 1; i=$((i + 1))
+    done
+    log "Kindle UI answered after ${i}s"
+    sleep 5
+    lipc-set-prop com.lab126.appmgrd start app://com.lab126.booklet.home 2>/dev/null
     exit 0
 }
 

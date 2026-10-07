@@ -70,3 +70,15 @@ show_message() {
         eips 1 38 "$*"
     fi
 }
+
+# Clear the screen and show a centred two-line notice.
+show_notice() {
+    fb="$(find_fbink)"
+    if [ -n "$fb" ]; then
+        "$fb" -q -c -f -m -M -S 3 "$1" && "$fb" -q -m -M -y 3 "$2"
+    else
+        eips -c
+        eips 10 18 "$1"
+        eips 4 21 "$2"
+    fi
+}
