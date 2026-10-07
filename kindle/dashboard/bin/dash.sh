@@ -1,29 +1,50 @@
 #!/bin/sh
 # Dashboard loop: stop the Kindle UI, show the dashboard, refresh hourly.
-# Press the power button to exit back to the normal Kindle UI.
+# Tap the screen or press the power button to exit back to the normal Kindle UI.
 . /mnt/us/extensions/dashboard/bin/common.sh
 
 echo $$ >"$DIR/dashboard.pid"
 log "Starting dashboard (pid $$)"
 load_config || exit 1
 
+SLEEP_PID=""
+EXITING=""
+
 restore_ui() {
-    log "Exiting dashboard, restarting the Kindle UI"
+    [ -n "$EXITING" ] && return
+    EXITING=1
+    log "Exiting dashboard ($(cat /tmp/dashboard.input 2>/dev/null || echo signal)), restarting the Kindle UI"
+    [ -n "$SLEEP_PID" ] && kill "$SLEEP_PID" 2>/dev/null
+    pkill -f "dd if=/dev/input/" 2>/dev/null
+    rm -f "$DIR/dashboard.pid" /tmp/dashboard.input
     lipc-set-prop com.lab126.powerd preventScreenSaver 0 2>/dev/null
-    rm -f "$DIR/dashboard.pid"
     start lab126_gui 2>/dev/null || /etc/init.d/framework start
     exit 0
 }
-trap restore_ui INT HUP
 
 # Stop the UI so it doesn't draw over the dashboard. The job sends SIGTERM on stop; ignore it.
 trap "" TERM
 stop lab126_gui 2>/dev/null || /etc/init.d/framework stop
 sleep 2
-trap restore_ui TERM
+trap restore_ui USR1 INT HUP TERM
 
 lipc-set-prop com.lab126.powerd preventScreenSaver 1
 lipc-set-prop com.lab126.cmd wirelessEnable 1 2>/dev/null
+
+# Exit on any touch or button press: one blocking reader per input device signals us.
+# (evdev readers don't steal events, so this doesn't interfere with anything else.)
+watch_input() {
+    rm -f /tmp/dashboard.input
+    for dev in /dev/input/event*; do
+        [ -e "$dev" ] || continue
+        (
+            dd if="$dev" of=/dev/null bs=64 count=1 2>/dev/null || exit 0
+            name="$(cat "/sys/class/input/$(basename "$dev")/device/name" 2>/dev/null)"
+            echo "$dev $name" >/tmp/dashboard.input
+            kill -USR1 $$
+        ) &
+    done
+}
 
 wait_for_wifi() {
     i=0
@@ -53,17 +74,15 @@ refresh() {
 }
 
 refresh
+sleep 2          # let the tap that launched us settle before watching for the next one
+watch_input
 while true; do
     wait_s=$(seconds_until_refresh)
     log "Next refresh in ${wait_s}s"
-    # Sleep until the next refresh, but wake immediately if the power button is pressed.
-    started=$(date +%s)
-    ev="$(lipc-wait-event -s "$wait_s" com.lab126.powerd goingToScreenSaver 2>/dev/null)"
-    case "$ev" in
-        *goingToScreenSaver*) restore_ui ;;
-    esac
-    # If lipc-wait-event returned early without an event, sleep out the rest instead of spinning.
-    left=$(( wait_s - ($(date +%s) - started) ))
-    [ $left -gt 5 ] && sleep $left
+    # Background sleep + wait, so the exit signal is handled immediately.
+    sleep "$wait_s" &
+    SLEEP_PID=$!
+    wait "$SLEEP_PID"
+    SLEEP_PID=""
     refresh
 done

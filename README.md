@@ -15,7 +15,7 @@ Each edit triggers a new render. The Kindle downloads the latest image at 5 minu
 
 1. `.github/workflows/render.yml` runs `render/render.py` hourly (at :45) and on every push. It fetches the weather from [Open-Meteo](https://open-meteo.com/) and draws a 1236×1648 grayscale PNG.
 2. The image is force-pushed as a single commit to the `output` branch, so history doesn't grow.
-3. On the Kindle, the KUAL extension in `kindle/dashboard/` stops the Kindle UI and downloads and displays the image hourly. To get the normal Kindle UI back, press the power button.
+3. On the Kindle, the KUAL extension in `kindle/dashboard/` stops the Kindle UI and downloads and displays the image hourly. To get the normal Kindle UI back, tap the screen or press the power button.
 
 ## Render locally
 

@@ -48,7 +48,7 @@ fetch_image() {
         log "ERROR: download is not a PNG: $(head -c 200 "$TMP_IMG")"
         return 1
     fi
-    mv -f "$TMP_IMG" "$IMG"
+    cat "$TMP_IMG" >"$IMG" && rm -f "$TMP_IMG"
     log "Downloaded $(wc -c <"$IMG") bytes"
 }
 
