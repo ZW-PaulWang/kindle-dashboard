@@ -4,3 +4,4 @@ Edit this file on GitHub (or tick the boxes) — the Kindle picks up changes wit
 
 - [ ] Room cleaning
 - [ ] Experiment Dota beans
+- [ ] Finish learning prediction market day 1
