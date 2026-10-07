@@ -23,6 +23,9 @@ from zoneinfo import ZoneInfo
 
 from PIL import Image, ImageDraw, ImageFont
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import doodles  # noqa: E402
+
 # --------------------------------------------------------------------------
 # Configuration
 # --------------------------------------------------------------------------
@@ -307,12 +310,12 @@ def _local(ts: str) -> datetime:
     return datetime.fromisoformat(ts)  # Open-Meteo returns naive local times
 
 
-def draw_weather(d: ImageDraw.ImageDraw, wx: dict | None, now: datetime, top: int, bottom: int):
+def draw_weather(img: Image.Image, d: ImageDraw.ImageDraw, wx: dict | None, now: datetime, top: int, bottom: int):
     if wx is None:
         draw_weather_unavailable(d, top, bottom)
         return
     try:
-        _draw_weather(d, wx, now, top)
+        _draw_weather(img, d, wx, now, top)
     except Exception as e:  # noqa: BLE001  (malformed response - keep the rest alive)
         warn(f"weather data malformed ({e.__class__.__name__}: {e})")
         d.rectangle([0, top, W, bottom], fill=WHITE)
@@ -328,7 +331,7 @@ def draw_weather_unavailable(d, top, bottom):
     d.text((W / 2, cy + 105), "Will retry at the next update", font=font("regular", 34), fill=DARK, anchor="ms")
 
 
-def _draw_weather(d, wx, now, top):
+def _draw_weather(img, d, wx, now, top):
     cur = wx["current"]
     daily = wx["daily"]
     hourly = wx["hourly"]
@@ -344,7 +347,8 @@ def _draw_weather(d, wx, now, top):
     hero_h = 232
     cy = hero_top + hero_h / 2
     icon_box = 200
-    draw_icon(d, icon, MARGIN + icon_box / 2, cy, icon_box)
+    hero = doodles.weather(doodles.weather_kind(cur.get("weather_code"), is_day), icon_box)
+    img.paste(hero, (MARGIN, int(cy - hero.height / 2)))
 
     temp_x = MARGIN + icon_box + 40
     right_x = 760
@@ -556,45 +560,6 @@ def draw_todo(d, x0, x1, top, bottom, open_items, done_items):
 # --------------------------------------------------------------------------
 # Coffee section
 # --------------------------------------------------------------------------
-def coffee_mascot(size: int) -> Image.Image:
-    """A cute line-art coffee cup (face, blush, steam heart), drawn 4x and downsampled."""
-    S = 4
-    w, h = 200, 212  # design units; scaled to `size` px wide
-    im = Image.new("L", (w * S, h * S), WHITE)
-    m = ImageDraw.Draw(im)
-
-    def P(*xy):
-        return [v * S for v in xy]
-
-    lw = 7 * S
-    # Steam: two S-curves and a heart rising from the cup.
-    for cx, phase in ((58, 0.0), (122, math.pi)):
-        pts = [(cx + 6 * math.sin(t / 10 + phase), 74 - t) for t in range(0, 34)]
-        m.line([(x * S, y * S) for x, y in pts], fill=BLACK, width=5 * S, joint="curve")
-    heart = []
-    for i in range(0, 361, 4):
-        t = math.radians(i)
-        x = 16 * math.sin(t) ** 3
-        y = 13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t)
-        heart.append(((90 + x * 1.35) * S, (38 - y * 1.35) * S))
-    m.line(heart + heart[:2], fill=BLACK, width=5 * S, joint="curve")
-    # Saucer, handle, body, rim.
-    m.ellipse(P(8, 180, 192, 208), fill=WHITE, outline=BLACK, width=lw)
-    m.arc(P(124, 108, 184, 166), start=-80, end=80, fill=BLACK, width=lw)
-    m.rounded_rectangle(P(30, 88, 150, 190), radius=30 * S, fill=WHITE, outline=BLACK,
-                        width=lw, corners=(False, False, True, True))
-    m.ellipse(P(30, 76, 150, 102), fill=WHITE, outline=BLACK, width=lw)
-    m.ellipse(P(42, 82, 138, 96), fill=DARK)
-    # Face: shiny eyes, blush, little smile.
-    for ex in (68, 112):
-        m.ellipse(P(ex - 7, 122, ex + 7, 140), fill=BLACK)
-        m.ellipse(P(ex - 3, 125, ex + 2, 130), fill=WHITE)
-    for bx in (54, 126):
-        m.ellipse(P(bx - 10, 143, bx + 10, 153), fill=170)
-    m.arc(P(80, 134, 100, 154), start=20, end=160, fill=BLACK, width=5 * S)
-    return im.resize((size, round(size * h / w)), Image.LANCZOS)
-
-
 def draw_coffee(img, d, x0, x1, top, bottom, beans, now):
     section_label(d, x0, top + 30, "Coffee of the day")
     if not beans:
@@ -606,7 +571,7 @@ def draw_coffee(img, d, x0, x1, top, bottom, beans, now):
     y = top + 76
 
     # Cartoon cup in the bottom-right corner; rows beside it wrap short of it.
-    mascot = coffee_mascot(170)
+    mascot = doodles.coffee_cup(170)
     mx, my = int(x1 - mascot.width), int(bottom - mascot.height)
     img.paste(mascot, (mx, my))
 
@@ -651,7 +616,7 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
 
     # Weather
     weather_top, weather_bottom = 158, 876
-    draw_weather(d, wx, now, weather_top, weather_bottom)
+    draw_weather(img, d, wx, now, weather_top, weather_bottom)
     hrule(d, weather_bottom, fill=BLACK, width=4)
 
     # Lower: to-do (left) | coffee (right)
@@ -665,6 +630,10 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     try:
         open_items, done_items = load_todos(todo_path)
         draw_todo(d, lx0, lx1, low_top, low_bottom, open_items, done_items)
+        board = doodles.clipboard(175)
+        bx, by = int(lx0), int(low_bottom - board.height)
+        if img.crop((bx, by - 16, bx + board.width, by + board.height)).getextrema() == (WHITE, WHITE):
+            img.paste(board, (bx, by))
     except Exception as e:  # noqa: BLE001  never let one section kill the image
         warn(f"to-do section failed ({e.__class__.__name__}: {e})")
     try:
