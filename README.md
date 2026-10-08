@@ -55,3 +55,8 @@ The token needs **Actions: Read and write** on this repository.
 ## Night sleep
 
 From midnight to 6 AM the Kindle shows `night.png`, turns Wi-Fi off and tries to suspend until morning (set `NIGHT_SUSPEND=0` in `config.sh` to only idle). Change the hours with `NIGHT_START` and `NIGHT_END`.
+
+## Morning bus times
+
+On weekday mornings (6–11 AM) a band under the weather shows the next three Harvard-bound **66** buses from Cambridge St opp Hano St, with arrival times at N Harvard St by HBS, from the [MBTA's public API](https://www.mbta.com/developers/v3-api). Live predictions get a small signal icon; scheduled-only times are gray. From 7 to 10 AM the Kindle refreshes every 10 minutes instead of hourly. The stops, route and hours are in `COMMUTE` at the top of the commute section of `render/render.py`; the Kindle's refresh window is in `config.sh` (`COMMUTE_START`, `COMMUTE_END`, `COMMUTE_EVERY`, `COMMUTE_LAST_DAY`).
+

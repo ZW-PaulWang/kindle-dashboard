@@ -75,10 +75,23 @@ wait_for_wifi() {
     return 1
 }
 
-# Seconds until REFRESH_MINUTE past the next hour (or this hour, if still ahead).
+# Weekday commute window (bus times on the dashboard): refresh every COMMUTE_EVERY minutes.
+in_commute() {
+    dow=$(date +%u); h=$(date +%H); h=${h#0}
+    [ "$dow" -le "$COMMUTE_LAST_DAY" ] && [ "$h" -ge "$COMMUTE_START" ] && [ "$h" -lt "$COMMUTE_END" ]
+}
+
+# Seconds until the next refresh: :05 every hour, or :05, :15, :25 ... in the commute window.
 seconds_until_refresh() {
-    m=$(date +%M); s=$(date +%S)
-    now=$(( ${m#0} * 60 + ${s#0} ))
+    m=$(date +%M); sec=$(date +%S)
+    now=$(( ${m#0} * 60 + ${sec#0} ))
+    if in_commute; then
+        step=$(( COMMUTE_EVERY * 60 ))
+        off=$(( (REFRESH_MINUTE % COMMUTE_EVERY) * 60 ))
+        if [ $now -lt $off ]; then echo $(( off - now )); return; fi
+        echo $(( ((now - off) / step + 1) * step + off - now ))
+        return
+    fi
     target=$(( REFRESH_MINUTE * 60 ))
     if [ $now -lt $target ]; then echo $(( target - now )); else echo $(( 3600 - now + target )); fi
 }

@@ -14,3 +14,9 @@ NIGHT_START=0
 NIGHT_END=6
 # 1: try a real deep sleep at night (best for battery); 0: just idle with Wi-Fi off.
 NIGHT_SUSPEND=1
+# Bus times: refresh every COMMUTE_EVERY minutes from COMMUTE_START to COMMUTE_END on
+# Monday..COMMUTE_LAST_DAY (5 = weekdays, 7 = every day).
+COMMUTE_START=7
+COMMUTE_END=10
+COMMUTE_EVERY=10
+COMMUTE_LAST_DAY=5

@@ -358,12 +358,39 @@ def coffee_cup(size: int, mood: str = "awake", season: str = "") -> Image.Image:
     return c.render(size)
 
 
+def bus(size: int) -> Image.Image:
+    """A smiling city bus, side view, rolling right."""
+    c = Canvas(240, 150)
+    # Body and roof line.
+    c.d.rounded_rectangle(c.box(14, 22, 226, 122), radius=22 * S, fill=PAPER, outline=INK, width=LW * S)
+    c.line([(26, 40), (214, 40)], width=4)
+    # Windows: windshield at the front (right), then a row of side windows and a door.
+    c.d.rounded_rectangle(c.box(184, 48, 216, 86), radius=8 * S, outline=INK, width=round(5 * S))
+    for x in (30, 66, 102):
+        c.d.rounded_rectangle(c.box(x, 50, x + 28, 76), radius=6 * S, outline=INK, width=round(5 * S))
+    c.d.rounded_rectangle(c.box(140, 50, 168, 112), radius=6 * S, outline=INK, width=round(5 * S))
+    c.line([(154, 52), (154, 110)], width=3.5)
+    # Face on the front panel, under the windshield.
+    face(c, 196, 99, 0.78)
+    # Headlight and bumper.
+    c.circle(220, 108, 4, fill=INK, outline=None)
+    # Wheels.
+    for x in (56, 180):
+        c.circle(x, 124, 17, fill=PAPER)
+        c.circle(x, 124, 6, fill=SHADE, width=4)
+    # Motion lines behind.
+    for y, l in ((60, 14), (80, 20), (100, 12)):
+        c.line([(2, y), (2 + l, y)], width=4)
+    return c.render(size)
+
+
 if __name__ == "__main__":  # preview sheet: python render/doodles.py out/doodles.png
     import sys
     kinds = ["sun", "moon", "partly", "partly-night", "cloud", "rain", "snow", "storm", "fog"]
     tiles = [weather(k, 200) for k in kinds] + [clipboard(200), clipboard(200, "cheer"), clipboard(200, "busy"),
                                                 coffee_cup(200), coffee_cup(200, "sleepy")]
     tiles += [coffee_cup(200, "awake", k) for k in ("leaf", "witch", "scarf", "santa", "flower", "shades")]
+    tiles += [bus(200)]
     sheet = Image.new("L", (4 * 240, 6 * 250), PAPER)
     for i, t in enumerate(tiles):
         sheet.paste(t, ((i % 4) * 240 + 20, (i // 4) * 250 + 20))

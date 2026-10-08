@@ -16,6 +16,10 @@ load_config() {
     NIGHT_START="${NIGHT_START:-0}"      # the dashboard sleeps from NIGHT_START:00 ...
     NIGHT_END="${NIGHT_END:-6}"          # ... to NIGHT_END:00 (local time)
     NIGHT_SUSPEND="${NIGHT_SUSPEND:-1}"  # 1: try a real deep sleep at night; 0: just idle with Wi-Fi off
+    COMMUTE_START="${COMMUTE_START:-7}"      # weekday mornings from COMMUTE_START:00 ...
+    COMMUTE_END="${COMMUTE_END:-10}"         # ... to COMMUTE_END:00, refresh every COMMUTE_EVERY minutes
+    COMMUTE_EVERY="${COMMUTE_EVERY:-10}"
+    COMMUTE_LAST_DAY="${COMMUTE_LAST_DAY:-5}"  # 5 = Monday to Friday, 7 = every day
     if [ -z "$REPO" ] || [ -z "$GITHUB_TOKEN" ]; then
         log "ERROR: REPO and GITHUB_TOKEN must be set in config.sh"
         return 1

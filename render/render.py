@@ -34,6 +34,7 @@ ROOT = Path(__file__).resolve().parent.parent
 FONT_DIR = ROOT / "fonts"
 TZ = ZoneInfo("America/New_York")
 CUP_SEASON = ""   # cup accessory for the current month (set by render())
+COMMUTE_DATA = None   # tests can preset bus data; otherwise fetched live
 CITY = "Boston"
 
 WEATHER_URL = (
@@ -575,6 +576,115 @@ def draw_hourly_chart(img, d, hourly, daily, now_n, top, bottom):
         hgt = max(4, bar_max * probs[wet] / 100)
         d.text((xs[wet] + 14, bar_base - hgt + 18), f"{int(probs[wet])}%", font=font("regular", 26), fill=DARK, anchor="ls")
 
+# --------------------------------------------------------------------------
+# Morning commute: MBTA bus 66 from home (37 N Beacon St, Allston) to HBS
+# --------------------------------------------------------------------------
+COMMUTE = {
+    "route": "66",
+    "direction": 0,                  # 0 = toward Harvard Square
+    "from_stop": "1111",             # Cambridge St opp Hano St
+    "from_name": "Cambridge St opp Hano St",
+    "to_stop": "2564",               # N Harvard St opp Harvard Stadium Gate 2, by HBS
+    "walk_min": 4,
+    "title": "66 to Harvard",
+    "days": {0, 1, 2, 3, 4},         # Monday to Friday
+    "hours": (6, 11),                # shown from 6 AM until 11 AM
+}
+MBTA = "https://api-v3.mbta.com"
+
+
+def commute_active(now: datetime) -> bool:
+    return now.weekday() in COMMUTE["days"] and COMMUTE["hours"][0] <= now.hour < COMMUTE["hours"][1]
+
+
+def _mbta(path: str) -> dict:
+    req = urllib.request.Request(f"{MBTA}/{path}", headers={"User-Agent": "kindle-dashboard"})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        return json.load(r)
+
+
+def load_commute(now: datetime) -> dict | None:
+    """Next buses you can still walk to: [{dep, arr, live}], or {"error": ...}. None outside commute hours."""
+    if not commute_active(now):
+        return None
+    c = COMMUTE
+    stops = f"{c['from_stop']},{c['to_stop']}"
+    base = f"filter%5Broute%5D={c['route']}&filter%5Bdirection_id%5D={c['direction']}&filter%5Bstop%5D={stops}"
+    t0, t1 = now, now + timedelta(minutes=100)
+    try:
+        sched = _mbta(f"schedules?{base}&filter%5Bdate%5D={now:%Y-%m-%d}"
+                      f"&filter%5Bmin_time%5D={t0:%H:%M}&filter%5Bmax_time%5D={t1:%H:%M}")["data"]
+        preds = _mbta(f"predictions?{base}")["data"]
+    except Exception as e:  # noqa: BLE001
+        warn(f"MBTA request failed ({e.__class__.__name__}: {e})")
+        return {"error": "Bus times unavailable right now."}
+    trips: dict[str, dict] = {}
+
+    def when(a):
+        t = a.get("departure_time") or a.get("arrival_time")
+        return datetime.fromisoformat(t).astimezone(TZ) if t else None
+
+    for row, live in [(r, False) for r in sched] + [(r, True) for r in preds]:
+        a, rel = row["attributes"], row["relationships"]
+        if live and a.get("schedule_relationship") in ("CANCELLED", "SKIPPED"):
+            trips.setdefault(rel["trip"]["data"]["id"], {})["cancelled"] = True
+            continue
+        t = when(a)
+        if t is None:
+            continue
+        trip = trips.setdefault(rel["trip"]["data"]["id"], {})
+        key = "dep" if rel["stop"]["data"]["id"] == c["from_stop"] else "arr"
+        if live or key not in trip or not trip.get(key + "_live"):
+            trip[key] = t
+            trip[key + "_live"] = live
+    rides = [(t["arr"] - t["dep"]).total_seconds() / 60 for t in trips.values() if "dep" in t and "arr" in t]
+    ride = sorted(rides)[len(rides) // 2] if rides else 13
+    earliest = now + timedelta(minutes=c["walk_min"] - 1)
+    buses = []
+    for t in trips.values():
+        if t.get("cancelled") or "dep" not in t or t["dep"] < earliest:
+            continue
+        buses.append({"dep": t["dep"], "arr": t.get("arr") or t["dep"] + timedelta(minutes=ride), "live": t.get("dep_live", False)})
+    buses.sort(key=lambda b: b["dep"])
+    return {"buses": buses[:3]}
+
+
+def short_clock(dt: datetime) -> str:
+    return f"{dt.hour % 12 or 12}:{dt.minute:02d}"
+
+
+def draw_commute(img, d, top, bottom, data):
+    """Band under the weather: bus doodle, route and stop, the next three departures with HBS arrival."""
+    h = bottom - top
+    art = doodles.bus(150)
+    img.paste(art, (MARGIN - 4, int(top + (h - art.height) / 2)))
+    tx = MARGIN + 166
+    x0 = 700                                     # departures start here
+    title_f = font("semibold", 40)
+    d.text((tx, top + 58), COMMUTE["title"], font=title_f, fill=BLACK, anchor="ls")
+    d.text((tx + text_w(COMMUTE["title"], title_f) + 14, top + 58), f"{COMMUTE['walk_min']} min walk",
+           font=font("regular", 28), fill=DARK, anchor="ls")
+    sf = font("regular", 28)
+    d.text((tx, top + 98), ellipsize(f"From {COMMUTE['from_name']}", sf, x0 - tx - 24), font=sf, fill=DARK, anchor="ls")
+    if "error" in data or not data.get("buses"):
+        msg = data.get("error") or "No more buses in the next 90 minutes."
+        mf = fit_font("medium", msg, W - MARGIN - x0, 32, 24)
+        d.text((x0, top + 76), msg, font=mf, fill=DARK, anchor="ls")
+        return
+    colw = (W - MARGIN - x0) / 3
+    tf, af = font("bold", 42), font("regular", 26)
+    for k, b in enumerate(data["buses"]):
+        cx = x0 + colw * k
+        t = short_clock(b["dep"])
+        d.text((cx, top + 60), t, font=tf, fill=BLACK if b["live"] else DARK, anchor="ls")
+        if b["live"]:   # small "live" signal arcs, as in transit apps
+            lx, ly = cx + text_w(t, tf) + 6, top + 30
+            for r in (6, 11):
+                d.arc([lx - r, ly - r, lx + r, ly + r], start=-90, end=0, fill=BLACK, width=3)
+            d.ellipse([lx - 2.5, ly - 2.5, lx + 2.5, ly + 2.5], fill=BLACK)
+        d.text((cx, top + 98), f"HBS {short_clock(b['arr'])}", font=af, fill=DARK, anchor="ls")
+
+
 SNOW_CODES = {71, 73, 75, 77, 85, 86}
 
 
@@ -829,6 +939,17 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     weather_top, weather_bottom = 158, WEATHER_BOTTOM
     draw_weather(img, d, wx, now, weather_top, weather_bottom)
     hrule(d, weather_bottom, fill=BLACK, width=4)
+
+    # Weekday mornings: the commute band takes the top of the lower half.
+    commute = COMMUTE_DATA if COMMUTE_DATA is not None else load_commute(now)
+    if commute is not None:
+        band_top, band_bottom = weather_bottom + 6, weather_bottom + 138
+        try:
+            draw_commute(img, d, band_top, band_bottom, commute)
+        except Exception as e:  # noqa: BLE001
+            warn(f"commute band failed ({e.__class__.__name__}: {e})")
+        hrule(d, band_bottom)
+        weather_bottom = band_bottom
 
     # Lower: to-do (left) | coffee (right)
     footer_rule = H - 106
