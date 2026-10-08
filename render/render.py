@@ -49,7 +49,7 @@ WEATHER_URL = (
 )
 
 W, H = 1236, 1648
-WEATHER_BOTTOM = 852
+WEATHER_BOTTOM = 764
 MARGIN = 64
 CONTENT_W = W - 2 * MARGIN
 
@@ -529,9 +529,8 @@ def draw_hourly_chart(img, d, hourly, daily, now_n, top, bottom):
     probs = [(hourly.get("precipitation_probability") or [0] * len(times))[i] or 0 for i in idx]
     x0, x1 = MARGIN + 46, W - MARGIN - 46
     xs = [x0 + (x1 - x0) * k / (len(idx) - 1) for k in range(len(idx))]
-    icon_cy = top + 42
-    line_top, line_bot = top + 128, top + 176
-    bar_base, bar_max = bottom - 50, 32
+    line_top, line_bot = top + 60, top + 94     # compact: labels above, icons sit with the times below
+    bar_base, bar_max = bottom - 46, 22
     lo, hi = min(temps), max(temps)
     span = max(hi - lo, 4)
     ys = [line_bot - (t - lo) / span * (line_bot - line_top) for t in temps]
@@ -557,19 +556,23 @@ def draw_hourly_chart(img, d, hourly, daily, now_n, top, bottom):
     img.paste(lay.resize((W, bottom - top), Image.LANCZOS), (0, top))
 
     sun = {t: (_local(daily["sunrise"][k]), _local(daily["sunset"][k])) for k, t in enumerate(daily["time"])}
-    tf, cf, lf = font("bold", 38), font("regular", 26), font("regular", 30)
+    tf, cf, lf = font("bold", 36), font("regular", 24), font("regular", 30)
     for k in marks:
         i, x, y = idx[k], xs[k], ys[k]
         t = times[i]
         sr, ss = sun.get(t.date().isoformat(), (None, None))
         day = (sr <= t < ss) if sr and ss else (6 <= t.hour < 19)
-        draw_icon(d, wmo(hourly["weather_code"][i], day)[1], x, icon_cy, 46)
         f_txt, c_txt = deg(temps[k]), " " + deg_c(temps[k])
         wf, wc = text_w(f_txt, tf), text_w(c_txt, cf)
         lx = min(max(x - (wf + wc) / 2, MARGIN), W - MARGIN - wf - wc)   # keep edge labels inside the margins
-        d.text((lx, y - 22), f_txt, font=tf, fill=BLACK, anchor="ls")
-        d.text((lx + wf, y - 22), c_txt, font=cf, fill=DARK, anchor="ls")
-        d.text((x, bottom - 12), "Now" if k == 0 else hour_label(t), font=lf, fill=BLACK if k == 0 else DARK, anchor="ms")
+        d.text((lx, y - 18), f_txt, font=tf, fill=BLACK, anchor="ls")
+        d.text((lx + wf, y - 18), c_txt, font=cf, fill=DARK, anchor="ls")
+        # Time label with its weather icon just to the left, centred together under the point.
+        label = "Now" if k == 0 else hour_label(t)
+        lw_ = text_w(label, lf)
+        gx = min(max(x - (lw_ + 40) / 2, MARGIN), W - MARGIN - lw_ - 40)
+        draw_icon(d, wmo(hourly["weather_code"][i], day)[1], gx + 15, bottom - 22, 30)
+        d.text((gx + 40, bottom - 10), label, font=lf, fill=BLACK if k == 0 else DARK, anchor="ls")
     # Label the wettest hour if rain is worth mentioning.
     wet = max(range(len(idx)), key=lambda k: probs[k])
     if probs[wet] >= 30:
