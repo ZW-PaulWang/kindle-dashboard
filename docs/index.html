@@ -2,144 +2,357 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kindle Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kindle dashboard</title>
 <meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
+  /* The palette is the Kindle's: 16 gray levels (multiples of 17), no colour.
+     Dark mode inverts like the Kindle's own dark mode. */
   :root {
-    --bg: #f6f5f2; --card: #ffffff; --text: #1d1d1b; --muted: #6b6a66; --line: #e2e0db;
-    --accent: #2f5d50; --accent-text: #ffffff; --danger: #a33a2c; --field: #ffffff;
+    --paper: #eeeeee;      /* 238 */
+    --sheet: #ffffff;
+    --ink: #000000;
+    --ink-2: #444444;      /* 68: secondary text, as on the dashboard */
+    --ink-3: #666666;      /* 102: done items, hints */
+    --rule: #bbbbbb;       /* 187: hairlines */
+    --wash: #dddddd;       /* 221: pressed / selected fill */
+    --stroke: 2.5px;       /* line-art weight, like the doodles */
+    --stroke-bold: 3.5px;
+    --r: 14px;
+    color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #161615; --card: #20201e; --text: #ecebe7; --muted: #a09e98; --line: #34332f;
-      --accent: #7fb8a4; --accent-text: #10201b; --danger: #e48a7c; --field: #1a1a19;
+    :root:not([data-theme="light"]) {
+      --paper: #000000; --sheet: #222222; --ink: #eeeeee; --ink-2: #bbbbbb; --ink-3: #888888;
+      --rule: #555555; --wash: #333333; color-scheme: dark;
     }
   }
+  :root[data-theme="dark"] {
+    --paper: #000000; --sheet: #222222; --ink: #eeeeee; --ink-2: #bbbbbb; --ink-3: #888888;
+    --rule: #555555; --wash: #333333; color-scheme: dark;
+  }
+
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 760px; margin: 0 auto; padding: 20px 16px 120px; }
-  h1 { font-size: 1.5rem; margin: 4px 0 2px; }
-  h2 { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
-  .sub { color: var(--muted); margin: 0 0 20px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-  .row { display: flex; gap: 8px; align-items: center; }
-  .grow { flex: 1; min-width: 0; }
-  input[type=text], input[type=password] {
-    width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px;
-    background: var(--field); color: var(--text); font: inherit;
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 400 17px/1.5 "IBM Plex Sans", system-ui, sans-serif;
+    font-feature-settings: "tnum" 1;
   }
-  input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
-  button {
-    font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line);
-    background: var(--card); color: var(--text); cursor: pointer; white-space: nowrap;
-  }
-  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
-  button.icon { padding: 6px 10px; color: var(--muted); }
-  button.danger { color: var(--danger); }
-  button:disabled { opacity: .5; cursor: default; }
-  ul { list-style: none; margin: 0; padding: 0; }
-  #todo-list li { display: flex; gap: 10px; align-items: center; padding: 4px 0; }
-  #todo-list li.done input[type=text] { color: var(--muted); text-decoration: line-through; }
-  #todo-list input[type=text] { border-color: transparent; background: transparent; padding: 6px 8px; }
-  #todo-list input[type=text]:focus { border-color: var(--line); background: var(--field); }
-  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 560px) { .choices { grid-template-columns: 1fr; } }
-  label.kind { display: block; font-weight: 600; margin-bottom: 6px; }
-  .params { margin: 10px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; }
-  .params dt { color: var(--muted); }
-  .params dd { margin: 0; font-weight: 600; }
-  .note { color: var(--muted); font-size: .9rem; margin: 8px 0 0; }
-  .bean { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--line); }
-  .bean:first-child { border-top: 0; padding-top: 0; }
-  .bean .name { font-weight: 700; }
-  .bean .meta { color: var(--muted); font-size: .9rem; }
-  dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--text); width: min(480px, calc(100vw - 32px)); padding: 16px; }
-  dialog::backdrop { background: rgba(0, 0, 0, .35); }
-  .fields { display: grid; grid-template-columns: 7.5em 1fr auto; gap: 8px; align-items: center; margin: 12px 0; }
-  #preview img { width: 100%; max-width: 420px; display: block; margin: 0 auto; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
-  #savebar {
-    position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-    background: var(--card); border-top: 1px solid var(--line); display: none;
-  }
-  #savebar .inner { max-width: 760px; margin: 0 auto; display: flex; gap: 12px; align-items: center; }
-  #status { min-height: 1.4em; }
-  .err { color: var(--danger); }
+  main { max-width: 560px; margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) 16px 140px; }
+  h1, h2 { margin: 0; font-weight: 700; letter-spacing: -0.01em; }
+  h1 { font-size: 1.05rem; font-weight: 600; color: var(--ink-2); }
+  h2 { font-size: 1.35rem; line-height: 1.2; }
+  p { margin: 0; }
+  a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
   [hidden] { display: none !important; }
+  .hint { color: var(--ink-3); font-size: .92rem; }
+  .err { color: var(--ink); font-weight: 600; }
+  .err::before { content: "! "; }
+
+  /* ---- Line-art controls ---- */
+  button, .btn {
+    font: inherit; font-weight: 600; color: var(--ink); background: var(--sheet);
+    border: var(--stroke) solid var(--ink); border-radius: 999px; padding: 8px 18px;
+    cursor: pointer; white-space: nowrap; min-height: 44px;
+  }
+  button:active { background: var(--wash); }
+  button:disabled { opacity: .45; cursor: default; }
+  button.ink { background: var(--ink); color: var(--paper); }
+  button.quiet { border-color: transparent; background: transparent; padding: 8px 10px; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
+  button.x { border: 0; background: transparent; width: 44px; padding: 0; color: var(--ink-3); }
+  button.x svg { width: 18px; height: 18px; }
+  :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 10px; }
+  input[type=text], input[type=password], select {
+    font: inherit; color: var(--ink); background: var(--sheet); width: 100%;
+    border: var(--stroke) solid var(--ink); border-radius: 12px; padding: 9px 12px; min-height: 46px;
+  }
+  select {
+    appearance: none; -webkit-appearance: none; font-weight: 600; padding-right: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 8l5 5 5-5' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; background-size: 18px;
+  }
+  label.field { display: grid; gap: 6px; font-weight: 600; }
+
+  /* Hand-drawn checkbox, matching the dashboard's to-do boxes. */
+  input[type=checkbox] {
+    appearance: none; -webkit-appearance: none; margin: 0; flex: none; cursor: pointer;
+    width: 26px; height: 26px; border: var(--stroke) solid var(--ink); border-radius: 7px; background: var(--sheet);
+    display: grid; place-content: center;
+  }
+  input[type=checkbox]::after {
+    content: ""; width: 13px; height: 7px; margin-top: -3px;
+    border-left: 3px solid var(--ink); border-bottom: 3px solid var(--ink);
+    transform: rotate(-45deg) scale(0); transition: transform .12s ease-out; border-radius: 1px;
+  }
+  input[type=checkbox]:checked { border-color: var(--ink-3); }
+  input[type=checkbox]:checked::after { transform: rotate(-45deg) scale(1); border-color: var(--ink-3); }
+
+  /* ---- Header ---- */
+  .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+  .top .when { color: var(--ink-3); font-size: .92rem; }
+
+  /* ---- The shot ticket (the one loud thing on the page) ---- */
+  .ticket {
+    background: var(--sheet); border: var(--stroke-bold) solid var(--ink); border-radius: 22px;
+    padding: 18px 18px 20px; position: relative;
+  }
+  .ticket-head { display: flex; gap: 14px; align-items: center; }
+  .ticket-head svg.cup { width: 74px; height: 78px; flex: none; }
+  .ticket-head .which { flex: 1; min-width: 0; }
+  .ticket-head .which p { color: var(--ink-2); font-size: .95rem; }
+  .ticket-head select { margin-top: 4px; font-size: 1.15rem; }
+  .shot { margin-top: 18px; }
+  .shot .io { display: grid; grid-template-columns: auto auto auto; justify-content: start; align-items: start; column-gap: clamp(8px, 3vw, 18px); }
+  .shot .io .n { font-weight: 700; letter-spacing: -0.04em; line-height: .9; font-size: clamp(2.5rem, 12.5vw, 4.4rem); white-space: nowrap; }
+  .shot .io .unit { font-size: .4em; font-weight: 500; letter-spacing: 0; color: var(--ink-2); margin-left: 3px; }
+  .shot .io .arrow { font-weight: 400; color: var(--ink-3); font-size: clamp(1.4rem, 6vw, 2.2rem); line-height: 1; padding-top: .45em; }
+  .shot .io .lbl { display: block; color: var(--ink-2); font-size: .92rem; font-weight: 500; letter-spacing: 0; margin-top: 6px; }
+  .shot .time { margin-top: 16px; font-size: 1.25rem; font-weight: 600; }
+  .shot .time small { font-weight: 400; color: var(--ink-2); font-size: .8em; }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 12px 0 0; }
+  .facts div { display: flex; gap: 6px; align-items: baseline; }
+  .facts dt { color: var(--ink-2); }
+  .facts dd { margin: 0; font-weight: 600; }
+  .perforation { border: 0; border-top: var(--stroke) dashed var(--rule); margin: 20px -18px 16px; }
+  .decaf { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .decaf-line { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 1.05rem; }
+  .decaf-line b { font-size: 1.6rem; letter-spacing: -0.02em; }
+  .missing { display: grid; gap: 10px; justify-items: start; margin-top: 14px; }
+
+  /* ---- Sections ---- */
+  section.block { margin-top: 40px; }
+  .block-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .block-head svg { width: 40px; height: 40px; flex: none; }
+  .block-head .count { margin-left: auto; color: var(--ink-3); }
+
+  ul { list-style: none; margin: 0; padding: 0; }
+  #todo-list li { display: flex; gap: 10px; align-items: flex-start; border-bottom: 1.5px solid var(--rule); padding: 4px 0; }
+  #todo-list li input[type=checkbox] { margin-top: 10px; }
+  #todo-list li button.x { min-height: 44px; }
+  #todo-list li:first-child { border-top: 1.5px solid var(--rule); }
+  #todo-list textarea {
+    flex: 1; min-width: 0; font: inherit; font-size: 1.08rem; color: var(--ink); resize: none; overflow: hidden;
+    border: var(--stroke) solid transparent; border-radius: 12px; background: transparent; padding: 8px 6px;
+    field-sizing: content; min-height: 0;
+  }
+  #todo-list textarea:focus { border-color: var(--ink); background: var(--sheet); }
+  #todo-list li.done textarea { color: var(--ink-3); text-decoration: line-through; text-decoration-thickness: 1.5px; }
+  #todo-list li.empty { color: var(--ink-3); padding: 14px 0; border-bottom: 0; }
+  #todo-add { display: flex; gap: 8px; margin-top: 14px; }
+  #todo-add input { flex: 1; min-width: 0; border-style: dashed; }
+  .row-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
+
+  #beans li { display: flex; align-items: center; gap: 8px; padding: 12px 0; border-bottom: 1.5px solid var(--rule); }
+  #beans li:first-child { border-top: 1.5px solid var(--rule); }
+  #beans .info { flex: 1; min-width: 0; }
+  #beans .name { font-weight: 700; font-size: 1.08rem; }
+  #beans .meta { color: var(--ink-2); font-size: .93rem; }
+  #beans .tag { display: inline-block; margin-left: 8px; font-size: .78rem; font-weight: 600; border: 1.5px solid var(--ink-2); color: var(--ink-2); border-radius: 999px; padding: 0 8px; vertical-align: 2px; }
+  #beans li.empty { color: var(--ink-3); border-bottom: 0; }
+
+  /* ---- Kindle preview: drawn as the device ---- */
+  .device {
+    margin: 4px auto 0; max-width: 340px; background: var(--sheet);
+    border: var(--stroke-bold) solid var(--ink); border-radius: 26px; padding: 16px 14px 34px;
+  }
+  .device .screen { background: #fff; border: 1.5px solid var(--rule); border-radius: 4px; aspect-ratio: 1236 / 1648; display: grid; place-items: center; overflow: hidden; }
+  .device img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .device .screen p { color: #666; padding: 20px; text-align: center; font-size: .92rem; }
+  .preview-actions { display: flex; justify-content: center; margin-top: 10px; }
+
+  /* ---- Connect ---- */
+  .connect { background: var(--sheet); border: var(--stroke-bold) solid var(--ink); border-radius: 22px; padding: 22px 18px; display: grid; gap: 16px; }
+  .connect svg { width: 64px; height: 68px; }
+  .connect ol { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+
+  footer.meta { margin-top: 44px; color: var(--ink-3); font-size: .9rem; }
+
+  /* ---- Save bar ---- */
+  #savebar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: var(--paper); border-top: var(--stroke) solid var(--ink);
+    transform: translateY(110%); transition: transform .2s ease-out;
+  }
+  #savebar.show { transform: none; }
+  #savebar .inner { max-width: 560px; margin: 0 auto; display: flex; gap: 12px; align-items: center; }
+  #status { flex: 1; min-width: 0; }
+
+  /* ---- Dialog ---- */
+  dialog {
+    border: var(--stroke-bold) solid var(--ink); border-radius: 22px; background: var(--paper); color: var(--ink);
+    width: min(500px, calc(100vw - 24px)); padding: 20px 18px; max-height: calc(100dvh - 24px);
+  }
+  dialog::backdrop { background: rgba(0, 0, 0, .45); }
+  dialog form { display: grid; gap: 14px; }
+  .fields { display: grid; grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr) 44px; gap: 8px; align-items: center; }
+  .dialog-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .dialog-actions .grow { flex: 1; }
+
+  /* ---- The one animation: steam rises when a save lands ---- */
+  .steam path { stroke-dasharray: 60; stroke-dashoffset: 0; }
+  .cup.saved .steam path { animation: steam 1.4s ease-out; }
+  .cup.saved .steam path:nth-child(2) { animation-delay: .12s; }
+  .cup.saved .steam path:nth-child(3) { animation-delay: .24s; }
+  @keyframes steam { 0% { stroke-dashoffset: 60; opacity: 0; } 25% { opacity: 1; } 100% { stroke-dashoffset: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1>Kindle dashboard</h1>
-  <p class="sub">Edit the to-do list and the coffee shown on the Kindle. Each save updates the image in about a minute; the Kindle shows it at 5 minutes past the hour.</p>
 
-  <section class="card" id="setup" hidden>
-    <h2>Connect to GitHub</h2>
-    <p>This page reads and writes <code>todo.md</code> and <code>coffee.md</code> in your repository. It needs a
-      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a>
-      with access to this repository only and <b>Contents: Read and write</b>. The token stays in this browser.</p>
-    <p><label>Repository (owner/name)<br><input type="text" id="repo" autocomplete="off" spellcheck="false"></label></p>
-    <p><label>Token<br><input type="password" id="token" autocomplete="off" spellcheck="false"></label></p>
-    <button class="primary" id="connect">Connect</button>
-    <p id="setup-msg" class="note"></p>
+<!-- Line-art doodles, drawn like the ones on the Kindle (2.5–3.5 px ink, round joins, gray blush). -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-x" viewBox="0 0 20 20"><path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></symbol>
+    <symbol id="clipboard" viewBox="0 0 200 212">
+      <g fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="38" y="30" width="118" height="170" rx="16" style="fill:var(--sheet)"/>
+        <rect x="74" y="16" width="46" height="28" rx="10" style="fill:var(--ink-2)"/>
+        <rect x="54" y="59" width="18" height="18" rx="4" stroke-width="6"/><path d="M57 68l5 5 8-11" stroke-width="6"/><path d="M84 68h54" stroke-width="7"/>
+        <rect x="54" y="87" width="18" height="18" rx="4" stroke-width="6"/><path d="M57 96l5 5 8-11" stroke-width="6"/><path d="M84 96h54" stroke-width="7"/>
+        <path d="M89 160q8 8 16 0" stroke-width="7"/>
+        <path d="M184 92l-24 100l-8-24z" style="fill:var(--sheet)" stroke-width="7"/>
+      </g>
+      <g fill="currentColor"><ellipse cx="81" cy="146" rx="6" ry="8.5"/><ellipse cx="113" cy="146" rx="6" ry="8.5"/></g>
+      <g style="fill:var(--rule)"><ellipse cx="66" cy="158" rx="8" ry="4.5"/><ellipse cx="128" cy="158" rx="8" ry="4.5"/></g>
+    </symbol>
+    <symbol id="bean" viewBox="0 0 120 120">
+      <g fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse cx="60" cy="62" rx="34" ry="44" transform="rotate(28 60 62)" style="fill:var(--sheet)"/>
+        <path d="M44 28c18 16 14 52 32 68"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<main>
+  <header class="top">
+    <h1>Kindle dashboard</h1>
+    <span class="when" id="today"></span>
+  </header>
+
+  <section class="connect" id="setup" hidden>
+    <svg class="cup" viewBox="0 0 200 212" aria-hidden="true"><use href="#cup-art"/></svg>
+    <h2>Connect this page to your dashboard</h2>
+    <p>It edits <code>todo.md</code> and <code>coffee.md</code> in your GitHub repository, which the Kindle reads from.</p>
+    <ol class="hint">
+      <li>Create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a> for this repository only.</li>
+      <li>Give it <b>Contents: Read and write</b>.</li>
+      <li>Paste it below. It stays in this browser.</li>
+    </ol>
+    <label class="field">Repository<input type="text" id="repo" autocomplete="off" spellcheck="false" placeholder="owner/name"></label>
+    <label class="field">Token<input type="password" id="token" autocomplete="off" spellcheck="false"></label>
+    <div><button class="ink" id="connect">Connect</button></div>
+    <p id="setup-msg" class="hint" role="alert"></p>
   </section>
 
   <div id="app" hidden>
-    <section class="card">
-      <h2>To-do</h2>
+    <!-- Today's shot -->
+    <section class="ticket" aria-labelledby="shot-title">
+      <div class="ticket-head">
+        <svg class="cup" id="cup" viewBox="0 0 200 212" aria-hidden="true"></svg>
+        <div class="which">
+          <p id="shot-title">Today's coffee</p>
+          <select id="pick-coffee" aria-label="Coffee shown on the dashboard"></select>
+        </div>
+      </div>
+      <div id="show-coffee"></div>
+
+      <hr class="perforation">
+      <div class="decaf">
+        <label class="field" for="pick-decaf">Decaf
+          <select id="pick-decaf"></select>
+        </label>
+        <div id="show-decaf"></div>
+      </div>
+    </section>
+
+    <!-- To-do -->
+    <section class="block" aria-labelledby="todo-title">
+      <div class="block-head">
+        <svg viewBox="0 0 200 212" aria-hidden="true"><use href="#clipboard"/></svg>
+        <h2 id="todo-title">To-do</h2>
+        <span class="count" id="todo-count"></span>
+      </div>
       <ul id="todo-list"></ul>
-      <form id="todo-add" class="row" style="margin-top:10px">
-        <input type="text" id="todo-new" class="grow" placeholder="Add an item" autocomplete="off">
+      <form id="todo-add">
+        <input type="text" id="todo-new" placeholder="Add a to-do" autocomplete="off" aria-label="New to-do">
         <button type="submit">Add</button>
       </form>
-      <div class="toolbar"><button id="todo-clear">Remove done items</button></div>
+      <div class="row-actions"><button class="quiet" id="todo-clear">Clear done items</button></div>
     </section>
 
-    <section class="card">
-      <h2>Coffee on the dashboard</h2>
-      <div class="choices">
-        <div><label class="kind" for="pick-coffee">Coffee</label><input type="text" id="pick-coffee" list="bean-names" autocomplete="off" placeholder="Bean name"><div id="show-coffee"></div></div>
-        <div><label class="kind" for="pick-decaf">Decaf</label><input type="text" id="pick-decaf" list="bean-names" autocomplete="off" placeholder="Bean name (empty: none)"><div id="show-decaf"></div></div>
+    <!-- Beans -->
+    <section class="block" aria-labelledby="beans-title">
+      <div class="block-head">
+        <svg viewBox="0 0 120 120" aria-hidden="true"><use href="#bean"/></svg>
+        <h2 id="beans-title">Your beans</h2>
       </div>
-      <datalist id="bean-names"></datalist>
-    </section>
-
-    <section class="card">
-      <h2>Saved beans</h2>
       <ul id="beans"></ul>
-      <div class="toolbar"><button id="bean-new">Add a bean</button></div>
+      <div class="row-actions"><button id="bean-new">Add a bean</button></div>
     </section>
 
-    <section class="card" id="preview">
-      <h2>Dashboard now</h2>
-      <div id="preview-body" class="note">Loading…</div>
-      <div class="toolbar"><button id="preview-reload">Reload image</button></div>
+    <!-- Preview -->
+    <section class="block" aria-labelledby="preview-title">
+      <div class="block-head"><h2 id="preview-title">On the Kindle now</h2></div>
+      <div class="device"><div class="screen" id="preview-body"><p>Loading the latest image…</p></div></div>
+      <div class="preview-actions"><button class="quiet" id="preview-reload">Reload image</button></div>
+      <p class="hint" style="text-align:center">Saved changes appear here in about a minute, and on the Kindle at 5 past the hour.</p>
     </section>
 
-    <p class="note">Repository: <span id="repo-label"></span> · <a href="#" id="disconnect">Disconnect</a></p>
+    <footer class="meta">Connected to <span id="repo-label"></span>. <a href="#" id="disconnect">Disconnect</a></footer>
   </div>
 </main>
 
-<div id="savebar"><div class="inner">
-  <span id="status" class="grow"></span>
-  <button class="primary" id="save">Save</button>
+<div id="savebar" role="status" aria-live="polite"><div class="inner">
+  <span id="status"></span>
+  <button class="ink" id="save">Save changes</button>
 </div></div>
 
-<dialog id="bean-dialog">
+<dialog id="bean-dialog" aria-labelledby="bean-title">
   <form method="dialog" id="bean-form">
     <h2 id="bean-title">Bean</h2>
-    <label>Name<br><input type="text" id="bean-name" autocomplete="off" required></label>
+    <label class="field">Name<input type="text" id="bean-name" autocomplete="off" required></label>
     <div class="fields" id="bean-fields"></div>
-    <div class="toolbar">
-      <button type="button" id="field-add">Add a field</button>
+    <div class="dialog-actions">
+      <button type="button" class="quiet" id="field-add">Add a field</button>
       <span class="grow"></span>
       <button type="button" id="bean-cancel">Cancel</button>
-      <button type="submit" class="primary">Done</button>
+      <button type="submit" class="ink">Done</button>
     </div>
-    <p id="bean-msg" class="note err"></p>
+    <p id="bean-msg" class="err" role="alert" hidden></p>
   </form>
 </dialog>
+
+<!-- The cup from the dashboard, as an SVG the page can animate. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="cup-art" viewBox="0 0 200 212">
+      <g class="steam" fill="none" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M58 74c-6-6 6-11 0-17s6-11 0-17"/>
+        <path d="M90 50c-14-9-24-22-14-30c6-4 12 0 14 5c2-5 8-9 14-5c10 8 0 21-14 30z"/>
+        <path d="M122 74c6-6-6-11 0-17s-6-11 0-17"/>
+      </g>
+      <g fill="none" stroke="currentColor" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse cx="100" cy="194" rx="92" ry="13" style="fill:var(--sheet)"/>
+        <path d="M150 116c26-6 34 16 22 30c-6 7-14 9-22 7"/>
+        <path d="M30 89v71c0 17 13 30 30 30h60c17 0 30-13 30-30V89" style="fill:var(--sheet)"/>
+        <ellipse cx="90" cy="89" rx="60" ry="13" style="fill:var(--sheet)"/>
+      </g>
+      <ellipse cx="90" cy="89" rx="48" ry="7" style="fill:var(--ink-2)"/>
+      <g fill="currentColor"><ellipse cx="68" cy="131" rx="8" ry="11.5"/><ellipse cx="112" cy="131" rx="8" ry="11.5"/></g>
+      <g style="fill:var(--sheet)"><circle cx="65" cy="126" r="3.2"/><circle cx="109" cy="126" r="3.2"/></g>
+      <g style="fill:var(--rule)"><ellipse cx="50" cy="147" rx="10" ry="6"/><ellipse cx="130" cy="147" rx="10" ry="6"/></g>
+      <path d="M80 140q10 11 20 0" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
 
 <script>
 "use strict";
@@ -148,6 +361,12 @@ const DEFAULT_FIELDS = ["Grams", "Grind", "Roast", "Ratio", "Time"];
 const TODO_RE = /^\s*[-*+]\s+\[([ xX])\]\s+(.*\S)\s*$/;
 const META_RE = /^\s*[-*+]\s+([^:]{1,40}?)\s*:\s*(.+?)\s*$/;   // same rule as render.py
 const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids); return n; };
+const xIcon = () => { const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 20 20"); s.setAttribute("aria-hidden", "true"); s.innerHTML = '<use href="#i-x"/>'; return s; };
+
+// The ticket's cup is drawn inline (not via <use>) so its steam can animate on save.
+$("cup").innerHTML = $("cup-art").innerHTML;
+$("today").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
 
 // ---- Settings (kept in this browser only) ----
 const store = {
@@ -241,16 +460,30 @@ function writeCoffee(c) {
 }
 const findBean = (name) => state.coffee.beans.find((b) => beanKey(b.name) === beanKey(name));
 
+// ---- Shot maths: dose in, yield out (dose x ratio) ----
+const metaGet = (meta, key) => (meta.find(([k]) => k.toLowerCase() === key) || [])[1] || "";
+const num = (s) => { const m = String(s).replace(",", ".").match(/\d+(\.\d+)?/); return m ? parseFloat(m[0]) : NaN; };
+const fmt = (n) => (Math.round(n * 10) / 10).toString();
+function shotOf(meta) {
+  const dose = num(metaGet(meta, "grams"));
+  const ratio = metaGet(meta, "ratio");
+  const r = ratio.match(/^\s*1\s*:\s*(\d+(?:[.,]\d+)?)\s*$/);
+  const out = r && !isNaN(dose) ? dose * parseFloat(r[1].replace(",", ".")) : NaN;
+  const time = metaGet(meta, "time").replace(/(\d)\s*-\s*(\d)/, "$1–$2");
+  const rest = meta.filter(([k]) => !["grams", "ratio", "time"].includes(k.toLowerCase()));
+  return { dose, out, ratio, time, rest };
+}
+
 // ---- State ----
 const state = { todo: null, coffee: null, sha: {}, dirty: { todo: false, coffee: false }, saving: false };
 function markDirty(which) { state.dirty[which] = true; showSavebar(); }
 function showSavebar(msg, isErr) {
   const dirty = state.dirty.todo || state.dirty.coffee;
-  $("savebar").style.display = dirty || msg ? "block" : "none";
+  $("savebar").classList.toggle("show", Boolean(dirty || msg));
   $("save").hidden = !dirty;
   $("save").disabled = state.saving;
   $("status").textContent = msg || (dirty ? "Unsaved changes" : "");
-  $("status").className = "grow" + (isErr ? " err" : "");
+  $("status").className = isErr ? "err" : "";
 }
 window.addEventListener("beforeunload", (e) => { if (state.dirty.todo || state.dirty.coffee) e.preventDefault(); });
 
@@ -259,18 +492,29 @@ function renderTodo() {
   const ul = $("todo-list");
   ul.replaceChildren();
   state.todo.items.forEach((item, i) => {
-    const li = document.createElement("li");
-    li.className = item.done ? "done" : "";
-    const cb = Object.assign(document.createElement("input"), { type: "checkbox", checked: item.done, title: "Done" });
-    cb.onchange = () => { item.done = cb.checked; li.className = item.done ? "done" : ""; markDirty("todo"); };
-    const txt = Object.assign(document.createElement("input"), { type: "text", value: item.text, className: "grow" });
-    txt.oninput = () => { item.text = txt.value; markDirty("todo"); };
-    const del = Object.assign(document.createElement("button"), { textContent: "✕", className: "icon", title: "Delete" });
+    const li = el("li", { className: item.done ? "done" : "" });
+    const cb = el("input", { type: "checkbox", checked: item.done });
+    cb.setAttribute("aria-label", `Done: ${item.text}`);
+    cb.onchange = () => { item.done = cb.checked; li.className = item.done ? "done" : ""; renderTodoCount(); markDirty("todo"); };
+    const txt = el("textarea", { rows: 1, value: item.text });
+    txt.setAttribute("aria-label", "To-do");
+    const fit = () => { if (!CSS.supports("field-sizing", "content")) { txt.style.height = "auto"; txt.style.height = `${txt.scrollHeight}px`; } };
+    // One line per item in todo.md, so Enter finishes editing instead of adding a line break.
+    txt.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); txt.blur(); } };
+    txt.oninput = () => { txt.value = txt.value.replace(/\n/g, " "); item.text = txt.value; fit(); markDirty("todo"); };
+    requestAnimationFrame(fit);
+    const del = el("button", { type: "button", className: "x", title: "Delete" }, xIcon());
+    del.setAttribute("aria-label", `Delete ${item.text}`);
     del.onclick = () => { state.todo.items.splice(i, 1); renderTodo(); markDirty("todo"); };
     li.append(cb, txt, del);
     ul.append(li);
   });
-  if (!state.todo.items.length) ul.append(Object.assign(document.createElement("li"), { className: "note", textContent: "Nothing on the list." }));
+  if (!state.todo.items.length) ul.append(el("li", { className: "empty", textContent: "Nothing on the list. Add the first to-do below." }));
+  renderTodoCount();
+}
+function renderTodoCount() {
+  const open = state.todo.items.filter((i) => !i.done).length;
+  $("todo-count").textContent = state.todo.items.length ? `${open} open` : "";
 }
 $("todo-add").onsubmit = (e) => {
   e.preventDefault();
@@ -287,75 +531,125 @@ $("todo-clear").onclick = () => {
 };
 
 // ---- Coffee UI ----
-function paramsList(meta) {
-  const dl = document.createElement("dl");
-  dl.className = "params";
-  for (const [k, v] of meta) dl.append(Object.assign(document.createElement("dt"), { textContent: k }), Object.assign(document.createElement("dd"), { textContent: v }));
+function factsList(pairs) {
+  const dl = el("dl", { className: "facts" });
+  for (const [k, v] of pairs) dl.append(el("div", {}, el("dt", { textContent: k }), el("dd", { textContent: v })));
   return dl;
 }
+function fillPicker(kind) {
+  const sel = $(`pick-${kind}`);
+  const chosen = state.coffee.chosen[kind];
+  const opts = [];
+  if (kind === "decaf") opts.push(el("option", { value: "", textContent: "No decaf" }));
+  else if (!chosen) opts.push(el("option", { value: "", textContent: "Pick a bean" }));
+  for (const b of state.coffee.beans) opts.push(el("option", { value: b.name, textContent: b.name }));
+  if (chosen && !findBean(chosen)) opts.push(el("option", { value: chosen, textContent: `${chosen} (not saved)` }));
+  sel.replaceChildren(...opts);
+  const match = findBean(chosen);
+  sel.value = match ? match.name : chosen;
+}
 function renderChoice(kind) {
-  const input = $(`pick-${kind}`), box = $(`show-${kind}`);
-  const name = input.value.trim();
+  const box = $(`show-${kind}`);
+  const name = state.coffee.chosen[kind];
   box.replaceChildren();
-  if (!name) { if (kind === "decaf") box.append(Object.assign(document.createElement("p"), { className: "note", textContent: "No decaf shown." })); return; }
+  if (!name) {
+    if (kind === "coffee") box.append(el("p", { className: "hint", textContent: "Pick the coffee the dashboard should show." }));
+    return;
+  }
   const bean = findBean(name);
-  if (bean) { box.append(paramsList(bean.meta)); return; }
-  const p = Object.assign(document.createElement("p"), { className: "note", textContent: "Not saved yet. " });
-  const add = Object.assign(document.createElement("button"), { textContent: "Save its settings" });
-  add.onclick = () => openBean(null, name);
-  box.append(p, add);
+  if (!bean) {
+    const add = el("button", { type: "button", textContent: "Save its settings" });
+    add.onclick = () => openBean(null, name);
+    box.append(el("div", { className: "missing" }, el("p", { className: "hint", textContent: `${name} isn't in your beans yet, so the dashboard has no numbers to show.` }), add));
+    return;
+  }
+  const s = shotOf(bean.meta);
+  if (kind === "coffee") {
+    const shot = el("div", { className: "shot" });
+    if (!isNaN(s.dose)) {
+      const io = el("div", { className: "io", role: "group" });
+      const amount = (g, label) => el("div", {}, el("div", { className: "n" }, fmt(g), el("span", { className: "unit", textContent: "g" })), el("span", { className: "lbl", textContent: label }));
+      io.append(amount(s.dose, "dose"));
+      if (!isNaN(s.out)) io.append(el("span", { className: "arrow", textContent: "→" }), amount(s.out, `yield, ${s.ratio.replace(/\s/g, "")}`));
+      io.setAttribute("aria-label", isNaN(s.out) ? `${fmt(s.dose)} gram dose` : `${fmt(s.dose)} gram dose, ${fmt(s.out)} gram yield`);
+      shot.append(io);
+    }
+    if (s.time) shot.append(el("p", { className: "time" }, s.time.replace(/\s*s$/, ""), el("small", { textContent: /s$/.test(s.time) ? " seconds" : "" })));
+    const extra = [...s.rest];
+    if (isNaN(s.out) && s.ratio) extra.unshift(["Ratio", s.ratio]);
+    if (extra.length) shot.append(factsList(extra));
+    box.append(shot);
+  } else {
+    const line = el("p", { className: "decaf-line" });
+    if (!isNaN(s.dose)) line.append(el("b", { textContent: isNaN(s.out) ? `${fmt(s.dose)} g` : `${fmt(s.dose)} → ${fmt(s.out)} g` }));
+    if (s.time) line.append(el("span", { textContent: s.time }));
+    box.append(line);
+    const extra = [...s.rest];
+    if (isNaN(s.out) && s.ratio) extra.unshift(["Ratio", s.ratio]);
+    if (extra.length) box.append(factsList(extra));
+  }
+}
+function beanSummary(meta) {
+  return meta.map(([k, v]) => {
+    const key = k.toLowerCase();
+    if (key === "grams" || key === "ratio") return v;
+    if (key === "time") return v.replace(/(\d)\s*-\s*(\d)/, "$1–$2");
+    if (key === "roast") return `${v.toLowerCase()} roast`;
+    return `${key} ${v}`;
+  }).join(", ");
 }
 function renderCoffee() {
-  $("pick-coffee").value = state.coffee.chosen.coffee;
-  $("pick-decaf").value = state.coffee.chosen.decaf;
+  fillPicker("coffee"); fillPicker("decaf");
   renderChoice("coffee"); renderChoice("decaf");
-  $("bean-names").replaceChildren(...state.coffee.beans.map((b) => Object.assign(document.createElement("option"), { value: b.name })));
   const ul = $("beans");
   ul.replaceChildren();
   state.coffee.beans.forEach((b) => {
-    const li = document.createElement("li");
-    li.className = "bean";
-    const info = document.createElement("div");
-    info.className = "grow";
-    info.append(Object.assign(document.createElement("div"), { className: "name", textContent: b.name }),
-      Object.assign(document.createElement("div"), { className: "meta", textContent: b.meta.map(([k, v]) => `${k} ${v}`).join(" · ") }));
-    const edit = Object.assign(document.createElement("button"), { textContent: "Edit" });
+    const name = el("div", { className: "name", textContent: b.name });
+    for (const kind of ["coffee", "decaf"]) {
+      if (beanKey(state.coffee.chosen[kind]) === beanKey(b.name)) name.append(el("span", { className: "tag", textContent: kind === "coffee" ? "Today" : "Decaf" }));
+    }
+    const info = el("div", { className: "info" }, name, el("div", { className: "meta", textContent: beanSummary(b.meta) }));
+    const edit = el("button", { type: "button", textContent: "Edit" });
+    edit.setAttribute("aria-label", `Edit ${b.name}`);
     edit.onclick = () => openBean(b);
-    const del = Object.assign(document.createElement("button"), { textContent: "Delete", className: "danger" });
+    const del = el("button", { type: "button", className: "x", title: "Delete" }, xIcon());
+    del.setAttribute("aria-label", `Delete ${b.name}`);
     del.onclick = () => {
       if (!confirm(`Delete ${b.name}?`)) return;
       state.coffee.beans.splice(state.coffee.beans.indexOf(b), 1);
       renderCoffee(); markDirty("coffee");
     };
-    li.append(info, edit, del);
-    ul.append(li);
+    ul.append(el("li", {}, info, edit, del));
   });
-  if (!state.coffee.beans.length) ul.append(Object.assign(document.createElement("li"), { className: "note", textContent: "No saved beans." }));
+  if (!state.coffee.beans.length) ul.append(el("li", { className: "empty", textContent: "No beans saved. Add one with its grams, grind, roast, ratio and time." }));
 }
 for (const kind of ["coffee", "decaf"]) {
-  const input = $(`pick-${kind}`);
-  input.oninput = () => { state.coffee.chosen[kind] = input.value.trim(); renderChoice(kind); markDirty("coffee"); };
-  // Use the saved spelling once the name matches a saved bean ("cafe de huila" -> "Cafe de Huila").
-  input.onchange = () => { const b = findBean(input.value); if (b && b.name !== input.value) { input.value = b.name; state.coffee.chosen[kind] = b.name; } };
+  $(`pick-${kind}`).onchange = (e) => {
+    state.coffee.chosen[kind] = e.target.value;
+    renderCoffee(); markDirty("coffee");
+  };
 }
 
 // ---- Bean editor ----
 let editing = null;
 function fieldRow(k = "", v = "") {
-  const key = Object.assign(document.createElement("input"), { type: "text", value: k, placeholder: "Field" });
-  const val = Object.assign(document.createElement("input"), { type: "text", value: v, placeholder: "Value" });
-  const del = Object.assign(document.createElement("button"), { type: "button", textContent: "✕", className: "icon", title: "Remove field" });
+  const key = el("input", { type: "text", value: k, placeholder: "Field" });
+  key.setAttribute("aria-label", "Field name");
+  const val = el("input", { type: "text", value: v, placeholder: "Value" });
+  val.setAttribute("aria-label", k ? `${k} value` : "Field value");
+  const del = el("button", { type: "button", className: "x", title: "Remove field" }, xIcon());
+  del.setAttribute("aria-label", "Remove field");
   del.onclick = () => { key.remove(); val.remove(); del.remove(); };
   $("bean-fields").append(key, val, del);
 }
 function openBean(bean, name = "") {
   editing = bean;
-  $("bean-title").textContent = bean ? "Edit bean" : "New bean";
+  $("bean-title").textContent = bean ? `Edit ${bean.name}` : "New bean";
   $("bean-name").value = bean ? bean.name : name;
   $("bean-fields").replaceChildren();
   const meta = bean ? bean.meta : DEFAULT_FIELDS.map((k) => [k, ""]);
   meta.forEach(([k, v]) => fieldRow(k, v));
-  $("bean-msg").textContent = "";
+  $("bean-msg").hidden = true;
   $("bean-dialog").showModal();
 }
 $("bean-new").onclick = () => openBean(null);
@@ -372,7 +666,8 @@ $("bean-form").onsubmit = (e) => {
   const clash = findBean(name);
   if (!name || (clash && clash !== editing)) {
     e.preventDefault();
-    $("bean-msg").textContent = name ? `A bean called ${clash.name} is already saved.` : "Give the bean a name.";
+    $("bean-msg").textContent = name ? `${clash.name} is already saved. Use a different name or edit that bean.` : "Give the bean a name.";
+    $("bean-msg").hidden = false;
     return;
   }
   if (editing) {
@@ -381,6 +676,8 @@ $("bean-form").onsubmit = (e) => {
     Object.assign(editing, { name, meta });
   } else {
     state.coffee.beans.push({ name, meta, extra: [] });
+    // A bean saved from "Save its settings" was already chosen under this name.
+    for (const kind of ["coffee", "decaf"]) if (beanKey(state.coffee.chosen[kind]) === beanKey(name)) state.coffee.chosen[kind] = name;
   }
   renderCoffee(); markDirty("coffee");
 };
@@ -389,14 +686,14 @@ $("bean-form").onsubmit = (e) => {
 let previewUrl = null;
 async function loadPreview() {
   const body = $("preview-body");
-  body.className = "note"; body.textContent = "Loading…";
+  body.replaceChildren(el("p", { textContent: "Loading the latest image…" }));
   try {
     const blob = await api("contents/dashboard.png?ref=output", { raw: true });
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     previewUrl = URL.createObjectURL(blob);
-    body.className = ""; body.replaceChildren(Object.assign(document.createElement("img"), { src: previewUrl, alt: "Current dashboard image" }));
+    body.replaceChildren(el("img", { src: previewUrl, alt: "The dashboard image the Kindle shows" }));
   } catch (e) {
-    body.className = "note err"; body.textContent = `Could not load the image (${e.message}).`;
+    body.replaceChildren(el("p", { className: "err", textContent: `Couldn't load the image (${e.message}). Reload to try again.` }));
   }
 }
 $("preview-reload").onclick = loadPreview;
@@ -421,13 +718,15 @@ $("save").onclick = async () => {
       state.dirty.coffee = false;
     }
     state.saving = false;
-    showSavebar("Saved. The dashboard image updates in about a minute.");
+    showSavebar("Saved. The new image is ready in about a minute.");
+    const cup = $("cup"); cup.classList.remove("saved"); void cup.getBoundingClientRect(); cup.classList.add("saved");
     setTimeout(() => { if (!state.dirty.todo && !state.dirty.coffee) showSavebar(); }, 6000);
+    setTimeout(loadPreview, 75000);
   } catch (e) {
     state.saving = false;
     const msg = e.status === 409 || /does not match/i.test(e.message)
-      ? "The file changed on GitHub since this page loaded. Reload the page and make the change again."
-      : `Save failed: ${e.message}`;
+      ? "Not saved: the file changed on GitHub since this page loaded. Reload the page and make the change again."
+      : `Not saved: ${e.message}`;
     showSavebar(msg, true);
   }
 };
@@ -442,9 +741,9 @@ async function start() {
     loadPreview();
   } catch (e) {
     $("setup").hidden = false; $("app").hidden = true;
-    $("setup-msg").className = "note err";
-    $("setup-msg").textContent = e.status === 401 ? "GitHub did not accept the token." :
-      e.status === 404 ? "Repository or file not found. Check the name and that the token can read this repository." : `Could not load: ${e.message}`;
+    $("setup-msg").className = "err";
+    $("setup-msg").textContent = e.status === 401 ? "GitHub didn't accept the token. Check it was copied in full and hasn't expired." :
+      e.status === 404 ? "Repository or file not found. Check the name, and that the token can read this repository." : `Couldn't load: ${e.message}`;
   }
 }
 $("connect").onclick = () => {
