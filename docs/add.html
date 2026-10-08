@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Add to Kindle</title>
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Add to Kindle">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="add-icon.png">
+<link rel="icon" href="add-icon.png">
+<link rel="manifest" href="add.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Same e-ink palette and line-art controls as index.html. */
+  :root {
+    --paper: #eeeeee; --sheet: #ffffff; --ink: #000000; --ink-2: #444444; --ink-3: #666666; --rule: #bbbbbb;
+    --wash: #dddddd; --stroke: 2.5px; --stroke-bold: 3.5px; color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --paper: #000000; --sheet: #222222; --ink: #eeeeee; --ink-2: #bbbbbb; --ink-3: #888888; --rule: #555555; --wash: #333333; color-scheme: dark; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 17px/1.5 "IBM Plex Sans", system-ui, sans-serif; }
+  main { max-width: 520px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom)); }
+  [hidden] { display: none !important; }
+  h1 { margin: 0; font-size: 1.6rem; line-height: 1.15; letter-spacing: -0.015em; }
+  .head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .head svg { width: 58px; height: 62px; flex: none; color: var(--ink); }
+  form { display: grid; gap: 12px; }
+  textarea {
+    font: inherit; font-size: 1.25rem; color: var(--ink); background: var(--sheet); width: 100%;
+    border: var(--stroke-bold) solid var(--ink); border-radius: 18px; padding: 14px 16px; resize: none;
+    min-height: 3.2em; field-sizing: content; max-height: 40vh;
+  }
+  button {
+    font: inherit; font-weight: 700; font-size: 1.1rem; border-radius: 999px; min-height: 54px; cursor: pointer;
+    border: var(--stroke) solid var(--ink); background: var(--ink); color: var(--paper);
+  }
+  button:active { opacity: .8; }
+  button:disabled { opacity: .45; cursor: default; }
+  :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  #msg { min-height: 1.5em; font-weight: 600; }
+  #msg.err::before { content: "! "; }
+  h2 { font-size: 1.05rem; margin: 34px 0 8px; color: var(--ink-2); font-weight: 600; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1.5px solid var(--rule); }
+  li:first-child { border-top: 1.5px solid var(--rule); }
+  li .box { width: 20px; height: 20px; flex: none; margin-top: 3px; border: 2px solid var(--ink); border-radius: 5px; }
+  li.new { font-weight: 600; }
+  li.empty { color: var(--ink-3); border: 0; }
+  .hint { color: var(--ink-3); font-size: .92rem; }
+  a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="clipboard" viewBox="0 0 200 212">
+    <g fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="38" y="30" width="118" height="170" rx="16" style="fill:var(--sheet)"/>
+      <rect x="74" y="16" width="46" height="28" rx="10" style="fill:var(--ink-2)"/>
+      <rect x="54" y="59" width="18" height="18" rx="4" stroke-width="6"/><path d="M57 68l5 5 8-11" stroke-width="6"/><path d="M84 68h54" stroke-width="7"/>
+      <rect x="54" y="87" width="18" height="18" rx="4" stroke-width="6"/><path d="M57 96l5 5 8-11" stroke-width="6"/><path d="M84 96h54" stroke-width="7"/>
+      <path d="M89 160q8 8 16 0" stroke-width="7"/>
+      <path d="M184 92l-24 100l-8-24z" style="fill:var(--sheet)" stroke-width="7"/>
+    </g>
+    <g fill="currentColor"><ellipse cx="81" cy="146" rx="6" ry="8.5"/><ellipse cx="113" cy="146" rx="6" ry="8.5"/></g>
+    <g style="fill:var(--rule)"><ellipse cx="66" cy="158" rx="8" ry="4.5"/><ellipse cx="128" cy="158" rx="8" ry="4.5"/></g>
+  </symbol>
+</defs></svg>
+
+<main>
+  <div class="head">
+    <svg viewBox="0 0 200 212" aria-hidden="true"><use href="#clipboard"/></svg>
+    <h1>Add a to-do</h1>
+  </div>
+
+  <p id="need-connect" class="hint" hidden>This page uses the connection from the <a href="./">dashboard editor</a>. Open it once in this browser, connect it, then come back here.</p>
+
+  <form id="add" hidden>
+    <textarea id="item" rows="2" placeholder="What needs doing?" aria-label="New to-do" enterkeyhint="send" autocomplete="off"></textarea>
+    <button type="submit" id="go">Add to the Kindle</button>
+    <p id="msg" role="status" aria-live="polite"></p>
+  </form>
+
+  <section id="list-wrap" hidden>
+    <h2>On the list</h2>
+    <ul id="list"></ul>
+    <p class="hint" style="margin-top:14px">The Kindle shows new to-dos at its next hourly refresh. <a href="./">Open the full editor</a></p>
+  </section>
+</main>
+
+<script>
+"use strict";
+const TODO_RE = /^\s*[-*+]\s+\[([ xX])\]\s+(.*\S)\s*$/;
+const $ = (id) => document.getElementById(id);
+const store = { get(k) { try { return localStorage.getItem(k) || ""; } catch { return ""; } } };
+function guessRepo() {
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+  const repo = location.pathname.split("/").filter(Boolean)[0];
+  return m && repo ? `${m[1]}/${repo}` : "ZW-PaulWang/kindle-dashboard";
+}
+// Shared with the editor (same site, same browser storage).
+const cfg = { repo: store.get("kd-repo") || guessRepo(), token: store.get("kd-token") };
+
+async function api(path, { method = "GET", body } = {}) {
+  const r = await fetch(`https://api.github.com/repos/${cfg.repo}/${path}`, {
+    method, cache: "no-store",
+    headers: {
+      Authorization: `Bearer ${cfg.token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28",
+      ...(body ? { "Content-Type": "application/json" } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!r.ok) {
+    let msg = `${r.status} ${r.statusText}`;
+    try { msg = (await r.json()).message || msg; } catch {}
+    const e = new Error(msg); e.status = r.status; throw e;
+  }
+  return r.json();
+}
+const b64decode = (s) => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, "")), (c) => c.charCodeAt(0)));
+function b64encode(text) {
+  const bytes = new TextEncoder().encode(text);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+
+let todo = { text: "", sha: "" };
+let justAdded = "";
+async function load() {
+  const j = await api("contents/todo.md");
+  todo = { text: b64decode(j.content), sha: j.sha };
+  renderList();
+}
+function renderList() {
+  const open = todo.text.split("\n").map((l) => l.match(TODO_RE)).filter((m) => m && m[1] === " ").map((m) => m[2]);
+  const ul = $("list");
+  ul.replaceChildren(...open.map((t) => {
+    const li = document.createElement("li");
+    if (t === justAdded) li.className = "new";
+    const box = document.createElement("span"); box.className = "box"; box.setAttribute("aria-hidden", "true");
+    li.append(box, document.createTextNode(t));
+    return li;
+  }));
+  if (!open.length) ul.append(Object.assign(document.createElement("li"), { className: "empty", textContent: "Nothing open." }));
+}
+// Append "- [ ] item" right after the last to-do line, keeping the rest of the file as it is.
+function appendItem(text, item) {
+  const lines = text.replace(/\n+$/, "").split("\n");
+  let last = -1;
+  lines.forEach((l, i) => { if (TODO_RE.test(l)) last = i; });
+  const line = `- [ ] ${item}`;
+  if (last < 0) lines.push("", line); else lines.splice(last + 1, 0, line);
+  return lines.join("\n") + "\n";
+}
+function say(text, isErr) { $("msg").textContent = text; $("msg").className = isErr ? "err" : ""; }
+
+$("item").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("add").requestSubmit(); }
+});
+$("add").onsubmit = async (e) => {
+  e.preventDefault();
+  const item = $("item").value.replace(/\s+/g, " ").trim();
+  if (!item) { say("Type the to-do first.", true); return; }
+  $("go").disabled = true; say("Adding…");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const j = await api("contents/todo.md", { method: "PUT", body: {
+        message: "Add to-do from the iPhone page", content: b64encode(appendItem(todo.text, item)), sha: todo.sha } });
+      todo = { text: appendItem(todo.text, item), sha: j.content.sha };
+      justAdded = item; renderList();
+      $("item").value = ""; say(`Added “${item}”.`);
+      $("go").disabled = false;
+      return;
+    } catch (err) {
+      // Someone else changed todo.md since this page loaded: reload it and try once more.
+      if ((err.status === 409 || /does not match/i.test(err.message)) && attempt === 0) { await load().catch(() => {}); continue; }
+      say(err.status === 401 ? "Not added: GitHub didn't accept the saved token. Reconnect in the editor." : `Not added: ${err.message}`, true);
+    }
+  }
+  $("go").disabled = false;
+};
+
+(async () => {
+  if (!cfg.token) { $("need-connect").hidden = false; return; }
+  $("add").hidden = false; $("list-wrap").hidden = false;
+  try { await load(); } catch (err) {
+    say(err.status === 401 ? "GitHub didn't accept the saved token. Reconnect in the editor." : `Couldn't load the list: ${err.message}`, true);
+  }
+  $("item").focus();
+})();
+</script>
+</body>
+</html>

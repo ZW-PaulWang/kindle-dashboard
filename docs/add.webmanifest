@@ -1,0 +1,12 @@
+{
+  "name": "Add to Kindle",
+  "short_name": "Add to Kindle",
+  "start_url": "add.html",
+  "display": "standalone",
+  "background_color": "#eeeeee",
+  "theme_color": "#eeeeee",
+  "icons": [
+    { "src": "add-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "add-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
