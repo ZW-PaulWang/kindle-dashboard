@@ -22,9 +22,9 @@ To host the page: Settings → Pages → Build and deployment → Deploy from a 
 
 ## How it works
 
-1. `.github/workflows/render.yml` runs `render/render.py` hourly (at :45) and on every push. It fetches the weather from [Open-Meteo](https://open-meteo.com/) and draws a 1236×1648 grayscale PNG.
+1. `.github/workflows/render.yml` runs `render/render.py` at :20 and :50 every hour (GitHub runs schedules on a best-effort basis and skips some) and on every push. It fetches the weather from [Open-Meteo](https://open-meteo.com/) and draws a 1236×1648 grayscale PNG.
 2. The image is force-pushed as a single commit to the `output` branch, so history doesn't grow.
-3. On the Kindle, the KUAL extension in `kindle/dashboard/` stops the Kindle UI and downloads and displays the image hourly. It then writes the battery level in the middle of the footer, because only the Kindle knows it. To get the normal Kindle UI back, double-tap the screen (uses KOReader's LuaJIT). In an emergency, hold the power button ~15 s to restart.
+3. On the Kindle, the KUAL extension in `kindle/dashboard/` stops the Kindle UI and downloads and displays the image hourly. It then draws a battery indicator (icon, exact %, charging bolt) in the middle of the footer, because only the Kindle knows the level. The icons are pre-rendered by `render/battery.py` into `kindle/dashboard/battery/`, and the indicator is redrawn every 10 minutes. To get the normal Kindle UI back, double-tap the screen (uses KOReader's LuaJIT). In an emergency, hold the power button ~15 s to restart.
 
 ## Render locally
 

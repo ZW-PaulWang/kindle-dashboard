@@ -2,7 +2,7 @@ name: Render dashboard
 
 on:
   schedule:
-    - cron: "45 */1 * * *" # hourly; the Kindle downloads at :05
+    - cron: "20,50 * * * *" # twice hourly (GitHub skips many scheduled runs); the Kindle downloads at :05
   push:
     branches: [main]
     paths:

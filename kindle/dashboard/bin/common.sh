@@ -83,22 +83,39 @@ show_notice() {
     fi
 }
 
-# Battery charge in percent (digits only), or nothing if unknown.
+# Footer battery indicator: pre-rendered images (render/battery.py) drawn into a fixed slot.
+BATTERY_X=508
+BATTERY_Y=1556
+
 battery_level() {
-    b="$(lipc-get-prop com.lab126.powerd battLevel 2>/dev/null | tr -dc 0-9)"
-    [ -z "$b" ] && b="$(gasgauge-info -c 2>/dev/null | tr -dc 0-9)"
-    echo "$b"
+    for f in /sys/class/power_supply/bd71827_bat/capacity /sys/class/power_supply/*/capacity; do
+        [ -r "$f" ] && { cat "$f"; return; }
+    done
+    b="$(lipc-get-prop com.lab126.powerd battLevel 2>/dev/null | tr -dc '0-9')"
+    [ -n "$b" ] && { echo "$b"; return; }
+    gasgauge-info -c 2>/dev/null | tr -dc '0-9'
 }
 
-# Write the battery level in the middle of the footer, which the renderer leaves empty.
-# The image is drawn on GitHub, so only the Kindle itself knows this number.
+battery_charging() {
+    for d in /sys/class/power_supply/bd71827_bat /sys/class/power_supply/*; do
+        [ -r "$d/status" ] || continue
+        case "$(cat "$d/status")" in Charging|Full) return 0 ;; *) return 1 ;; esac
+    done
+    return 1
+}
+
 show_battery() {
-    b="$(battery_level)"
-    [ -z "$b" ] && return 0
-    msg="Battery $b%"
-    [ "$b" -lt 15 ] && msg="$msg - charge soon"
-    fb="$(find_fbink)" || return 0
-    # px=30, top=1561: same size and baseline as the footer text in render.py.
-    "$fb" -q -m -t regular="$DIR/fonts/IBMPlexSans-Regular.ttf",px=30,top=1561 "$msg" 2>/dev/null \
-        || "$fb" -q -m -y -1 "$msg"
+    lvl="$(battery_level)"
+    case "$lvl" in ''|*[!0-9]*) return ;; esac
+    [ "$lvl" -gt 100 ] && lvl=100
+    img="$(printf '%s/battery/bat_%03d' "$DIR" "$lvl")"
+    battery_charging && img="${img}_c"
+    img="$img.png"
+    [ -f "$img" ] || return
+    fb="$(find_fbink)"
+    if [ -n "$fb" ]; then
+        "$fb" -q -g file="$img",x=$BATTERY_X,y=$BATTERY_Y
+    else
+        eips -g "$img" -x $BATTERY_X -y $BATTERY_Y
+    fi
 }

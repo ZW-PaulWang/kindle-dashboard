@@ -87,23 +87,32 @@ refresh() {
     log "Refreshing (battery $(gasgauge-info -c 2>/dev/null))"
     if wait_for_wifi && fetch_image; then
         show_image
-        show_battery
     else
-        [ -f "$IMG" ] && show_image && show_battery
+        [ -f "$IMG" ] && show_image
         show_message "Offline - last update failed $(date '+%H:%M') UTC"
     fi
+    show_battery
 }
 
 refresh
 sleep 2          # let the tap that launched us settle before watching for the next one
 watch_input
+BATTERY_EVERY=600   # redraw the battery indicator every 10 minutes between refreshes
 while true; do
     wait_s=$(seconds_until_refresh)
-    log "Next refresh in ${wait_s}s"
+    step=$wait_s
+    [ "$step" -gt "$BATTERY_EVERY" ] && step=$BATTERY_EVERY
+    [ -n "$LOGGED" ] || log "Next refresh in ${wait_s}s"
+    LOGGED=1
     # Background sleep + wait, so the exit signal is handled immediately.
-    sleep "$wait_s" &
+    sleep "$step" &
     SLEEP_PID=$!
     wait "$SLEEP_PID"
     SLEEP_PID=""
-    refresh
+    if [ "$step" -lt "$wait_s" ]; then
+        show_battery
+    else
+        LOGGED=""
+        refresh
+    fi
 done
