@@ -144,6 +144,11 @@ def deg(v) -> str:
     return f"{sign}{abs(n)}\u00b0"
 
 
+def deg_c(f) -> str:
+    """Fahrenheit value -> Celsius label, e.g. 54 -> "12°C"."""
+    return deg((float(f) - 32) * 5 / 9) + "C"
+
+
 def clock(dt: datetime) -> str:
     h = dt.hour % 12 or 12
     return f"{h}:{dt.minute:02d} {'AM' if dt.hour < 12 else 'PM'}"
@@ -386,13 +391,18 @@ def _draw_weather(img, d, wx, now, top):
     temp_x = MARGIN + icon_box + 40
     right_x = 760
     temp = deg(cur["temperature_2m"])
-    size = 250
+    size = 220
     while size > 120 and text_w(temp, font("medium", size)) > right_x - 48 - temp_x:
         size -= 10
     tf = font("medium", size)
-    # Optically centre the digits' cap height on the hero centre line.
-    _, t, _, b = tf.getbbox("0", anchor="ls")
-    d.text((temp_x, cy - (t + b) / 2), temp, font=tf, fill=BLACK, anchor="ls")
+    # Celsius below the digits; centre the pair (digit cap top .. Celsius baseline) on the hero centre line.
+    _, t, _, _ = tf.getbbox("0", anchor="ls")
+    cf_ = font("regular", 44)
+    c_cap = -cf_.getbbox("0", anchor="ls")[1]
+    gap = 34
+    base = cy + (-t - gap - c_cap) / 2
+    d.text((temp_x, base), temp, font=tf, fill=BLACK, anchor="ls")
+    d.text((temp_x + 8, base + gap + c_cap), deg_c(cur["temperature_2m"]), font=cf_, fill=DARK, anchor="ls")
 
     # Right column
     cw = W - MARGIN - right_x
@@ -440,7 +450,7 @@ def _draw_weather(img, d, wx, now, top):
     idxs = [i for i in range(start, len(times), 2)][:6]
     probs = hourly.get("precipitation_probability") or [None] * len(times)
     any_rain = any(probs[i] is not None and probs[i] >= 10 for i in idxs)
-    y_h = y + (23 if any_rain else 41)
+    y_h = y + (28 if any_rain else 46)
     if idxs:
         colw = CONTENT_W / len(idxs)
         sun = {}
@@ -455,12 +465,13 @@ def _draw_weather(img, d, wx, now, top):
             d.text((cx, y_h + 26), hour_label(t), font=font("regular", 32), fill=DARK, anchor="ms")
             draw_icon(d, ic, cx, y_h + 70, 60)
             d.text((cx, y_h + 142), deg(hourly["temperature_2m"][i]), font=font("bold", 44), fill=BLACK, anchor="ms")
+            d.text((cx, y_h + 180), deg_c(hourly["temperature_2m"][i]), font=font("regular", 32), fill=DARK, anchor="ms")
             p = probs[i]
             if p is not None and p >= 10:
                 pf = font("regular", 30)
                 pw = text_w(f"{int(p)}%", pf) + 24
-                draw_icon(d, "raindrop", cx - pw / 2 + 8, y_h + 168, 22, fill=DARK)
-                d.text((cx - pw / 2 + 24, y_h + 178), f"{int(p)}%", font=pf, fill=DARK, anchor="ls")
+                draw_icon(d, "raindrop", cx - pw / 2 + 8, y_h + 206, 22, fill=DARK)
+                d.text((cx - pw / 2 + 24, y_h + 216), f"{int(p)}%", font=pf, fill=DARK, anchor="ls")
 
 
 # --------------------------------------------------------------------------
@@ -667,7 +678,7 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     hrule(d, 134, fill=BLACK, width=4)
 
     # Weather
-    weather_top, weather_bottom = 158, 758
+    weather_top, weather_bottom = 158, 776
     draw_weather(img, d, wx, now, weather_top, weather_bottom)
     hrule(d, weather_bottom, fill=BLACK, width=4)
 
