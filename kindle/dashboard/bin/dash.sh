@@ -145,7 +145,8 @@ night() {
     left=$(( deadline - $(date +%s) ))
     [ $left -gt 0 ] && pause "$left"
     lipc-set-prop com.lab126.cmd wirelessEnable 1 2>/dev/null
-    log "Good morning"
+    deep_clean
+    log "Good morning (screen cleaned)"
 }
 
 refresh() {

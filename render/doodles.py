@@ -257,10 +257,74 @@ def clipboard(size: int, mood: str = "happy") -> Image.Image:
     return c.render(size)
 
 
-def coffee_cup(size: int, mood: str = "awake") -> Image.Image:
-    """A mug on a saucer. awake: big eyes, steam curling into a heart. sleepy: closed eyes, a drowsy z z."""
+SEASONS = {9: "leaf", 10: "witch", 11: "scarf", 12: "santa", 1: "scarf", 2: "scarf",
+           3: "flower", 4: "flower", 5: "flower", 6: "shades", 7: "shades", 8: "shades"}
+
+
+def season_for(month: int) -> str:
+    return SEASONS.get(month, "")
+
+
+def _hat(c: Canvas, kind: str):
+    """A hat perched on the left of the rim (witch or santa)."""
+    P = lambda pts: [(x * S, y * S) for x, y in pts]  # noqa: E731
+    if kind == "witch":
+        # Tall bent cone, wide brim, light band: unmistakably a witch hat at small sizes.
+        c.d.polygon(P(((42, 72), (60, 34), (52, 6), (80, 30), (98, 72))), fill=SHADE, outline=INK, width=round(5 * S))
+        c.d.ellipse(c.box(14, 62, 126, 86), fill=SHADE, outline=INK, width=round(5 * S))
+        c.d.rounded_rectangle(c.box(44, 58, 96, 70), radius=3 * S, fill=PAPER, outline=INK, width=round(4 * S))
+    else:  # santa: dark cone flopping right, white fur band and pompom
+        c.d.polygon(P(((34, 74), (54, 30), (88, 14), (112, 34), (100, 74))), fill=SHADE, outline=INK, width=round(5 * S))
+        c.d.rounded_rectangle(c.box(24, 64, 112, 88), radius=12 * S, fill=PAPER, outline=INK, width=round(5 * S))
+        c.circle(116, 36, 12)
+
+
+def _scarf(c: Canvas):
+    c.d.rounded_rectangle(c.box(26, 158, 154, 178), radius=8 * S, fill=PAPER, outline=INK, width=round(5 * S))
+    for x in range(44, 150, 18):
+        c.line([(x, 162), (x - 6, 174)], width=3.5)
+    c.d.polygon([(x * S, y * S) for x, y in ((128, 172), (146, 172), (152, 200), (132, 200))], fill=PAPER, outline=INK, width=round(5 * S))
+    for x in (136, 141, 146):
+        c.line([(x, 200), (x, 207)], width=3)
+
+
+def _shades(c: Canvas):
+    for ex in (68, 112):
+        c.d.rounded_rectangle(c.box(ex - 16, 120, ex + 16, 142), radius=9 * S, fill=INK)
+    c.line([(84, 126), (96, 126)], width=4)
+    c.line([(52, 124), (34, 118)], width=4)
+    c.line([(128, 124), (148, 118)], width=4)
+
+
+def _flower(c: Canvas):
+    c.line([(180, 188), (177, 136)], width=5)
+    c.line([(178, 166), (194, 154)], width=4.5)
+    for k in range(5):
+        t = math.radians(k * 72 - 90)
+        c.circle(177 + 12 * math.cos(t), 122 + 12 * math.sin(t), 9, width=4.5)
+    c.circle(177, 122, 7, fill=SHADE, width=3.5)
+
+
+def _leaf(c: Canvas):
+    pts = []
+    for k in range(0, 361, 8):
+        t = math.radians(k)
+        x, y = 26 * math.cos(t), 14 * math.sin(t) * (1 - 0.3 * math.cos(t))
+        r = math.radians(-35)
+        pts.append(((30 + x * math.cos(r) - y * math.sin(r)) * S, (40 + x * math.sin(r) + y * math.cos(r)) * S))
+    c.d.polygon(pts, fill=PAPER, outline=INK, width=round(5 * S))
+    c.line([(8, 58), (50, 26)], width=4)
+
+
+def coffee_cup(size: int, mood: str = "awake", season: str = "") -> Image.Image:
+    """A mug on a saucer. awake: big eyes, steam curling into a heart. sleepy: closed eyes, a drowsy z z.
+    season adds an accessory: leaf, witch, scarf, santa, flower or shades."""
     c = Canvas(200, 212)
-    if mood == "sleepy":
+    hat = season in ("witch", "santa")
+    if hat:
+        # The hat sits where the left steam and heart would be; keep one wisp on the right.
+        c.line([(122 + 6 * math.sin(t / 10), 74 - t) for t in range(0, 34)], width=5)
+    elif mood == "sleepy":
         c.line([(90 + 5 * math.sin(t / 9), 72 - t) for t in range(0, 30)], width=5)
         c.line([(132, 30), (148, 30), (132, 46), (148, 46)], width=4.5)
         c.line([(156, 6), (168, 6), (156, 18), (168, 18)], width=4)
@@ -281,6 +345,16 @@ def coffee_cup(size: int, mood: str = "awake") -> Image.Image:
     c.d.ellipse(c.box(30, 76, 150, 102), fill=PAPER, outline=INK, width=LW * S)
     c.d.ellipse(c.box(42, 82, 138, 96), fill=SHADE)
     face(c, 90, 131, 1.35, mood="sleepy" if mood == "sleepy" else "happy")
+    if hat:
+        _hat(c, season)
+    elif season == "scarf":
+        _scarf(c)
+    elif season == "shades":
+        _shades(c)
+    elif season == "flower":
+        _flower(c)
+    elif season == "leaf":
+        _leaf(c)
     return c.render(size)
 
 
@@ -289,7 +363,8 @@ if __name__ == "__main__":  # preview sheet: python render/doodles.py out/doodle
     kinds = ["sun", "moon", "partly", "partly-night", "cloud", "rain", "snow", "storm", "fog"]
     tiles = [weather(k, 200) for k in kinds] + [clipboard(200), clipboard(200, "cheer"), clipboard(200, "busy"),
                                                 coffee_cup(200), coffee_cup(200, "sleepy")]
-    sheet = Image.new("L", (4 * 240, 4 * 250), PAPER)
+    tiles += [coffee_cup(200, "awake", k) for k in ("leaf", "witch", "scarf", "santa", "flower", "shades")]
+    sheet = Image.new("L", (4 * 240, 6 * 250), PAPER)
     for i, t in enumerate(tiles):
         sheet.paste(t, ((i % 4) * 240 + 20, (i // 4) * 250 + 20))
     sheet.save(sys.argv[1] if len(sys.argv) > 1 else "doodles.png")

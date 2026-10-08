@@ -33,6 +33,7 @@ import doodles  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 FONT_DIR = ROOT / "fonts"
 TZ = ZoneInfo("America/New_York")
+CUP_SEASON = ""   # cup accessory for the current month (set by render())
 CITY = "Boston"
 
 WEATHER_URL = (
@@ -47,6 +48,7 @@ WEATHER_URL = (
 )
 
 W, H = 1236, 1648
+WEATHER_BOTTOM = 852
 MARGIN = 64
 CONTENT_W = W - 2 * MARGIN
 
@@ -222,13 +224,10 @@ def hrule(d, y, x0=MARGIN, x1=W - MARGIN, fill=RULE, width=2):
     d.rectangle([x0, y, x1, y + width - 1], fill=fill)
 
 
-def section_label(d, x, y, label: str, right: str | None = None, x1: float | None = None):
-    """Small tracked uppercase section label (baseline at y)."""
-    f = font("semibold", 30)
-    cx = x
-    for ch in label.upper():
-        d.text((cx, y), ch, font=f, fill=DARK, anchor="ls")
-        cx += text_w(ch, f) + 3
+def section_label(d, x, y, label: str, right: str | None = None, x1: float | None = None, minor: bool = False):
+    """Section title in sentence case (baseline at y); minor=True for quieter column heads."""
+    f = font("regular", 30) if minor else font("semibold", 36)
+    d.text((x, y), label, font=f, fill=DARK if minor else BLACK, anchor="ls")
     if right and x1 is not None:
         d.text((x1, y), right, font=font("regular", 30), fill=DARK, anchor="rs")
 
@@ -310,10 +309,15 @@ def load_beans(path: Path) -> tuple[list[dict], dict[str, str]]:
         if not m:
             continue
         if cur is not None:
-            cur["meta"].append((clean_md(m.group(1)), clean_md(m.group(2))))
+            cur["meta"].append((clean_md(m.group(1)), en_dash(clean_md(m.group(2)))))
         elif not beans and m.group(1).strip().lower() in ("coffee", "decaf"):
             chosen[m.group(1).strip().lower()] = clean_md(m.group(2))
     return [b for b in beans if b["name"]], chosen
+
+
+def en_dash(s: str) -> str:
+    """Typographic ranges: '28-30 s' -> '28–30 s'."""
+    return re.sub(r"(\d)\s*-\s*(\d)", "\\1\u2013\\2", s)
 
 
 def bean_key(name: str) -> str:
@@ -434,52 +438,142 @@ def _draw_weather(img, d, wx, now, top):
         sf = fit_font("medium", sentence, CONTENT_W, 38, 30)
         d.text((MARGIN, sy), ellipsize(sentence, sf, CONTENT_W), font=sf, fill=BLACK, anchor="ls")
 
-    # ---- Stat row ----
+    # ---- Stat row: rain and wind, then a daylight bar across the right half ----
     y0 = sy + 22
-    stats = []
+    cell = CONTENT_W / 4
     pp = daily.get("precipitation_probability_max", [None] * (di + 1))[di]
-    stats.append(("umbrella", f"{int(pp) if pp is not None else 0}%", "Rain"))
-    stats.append(("strong-wind", f"{int(round(cur.get('wind_speed_10m', 0)))} mph", "Wind"))
-    stats.append(("sunrise", clock(_local(daily["sunrise"][di])), "Sunrise"))
-    stats.append(("sunset", clock(_local(daily["sunset"][di])), "Sunset"))
-    cell = CONTENT_W / len(stats)
+    stats = [("umbrella", f"{int(pp) if pp is not None else 0}%", "Rain"),
+             ("strong-wind", f"{int(round(cur.get('wind_speed_10m', 0)))} mph", "Wind")]
     for i, (ic, val, label) in enumerate(stats):
         x = MARGIN + i * cell
         draw_icon(d, ic, x + 30, y0 + 40, 52)
         d.text((x + 76, y0 + 40), val, font=font("bold", 40), fill=BLACK, anchor="ls")
         d.text((x + 76, y0 + 78), label, font=font("regular", 30), fill=DARK, anchor="ls")
+    draw_daylight(img, d, MARGIN + 2 * cell + 6, W - MARGIN, y0,
+                  _local(daily["sunrise"][di]), _local(daily["sunset"][di]), now_naive)
     y = y0 + 104
     hrule(d, y)
 
-    # ---- Hourly strip: next ~12 hours, every 2 hours ----
-    times = [_local(t) for t in hourly["time"]]
-    start = next((i for i, t in enumerate(times) if t > now_naive), len(times))
-    idxs = [i for i in range(start, len(times), 2)][:6]
-    probs = hourly.get("precipitation_probability") or [None] * len(times)
-    any_rain = any(probs[i] is not None and probs[i] >= 10 for i in idxs)
-    y_h = y + (28 if any_rain else 46)
-    if idxs:
-        colw = CONTENT_W / len(idxs)
-        sun = {}
-        for k, t in enumerate(daily["time"]):
-            sun[t] = (_local(daily["sunrise"][k]), _local(daily["sunset"][k]))
-        for n, i in enumerate(idxs):
-            cx = MARGIN + colw * (n + 0.5)
-            t = times[i]
-            sr, ss = sun.get(t.date().isoformat(), (None, None))
-            day = (sr <= t < ss) if sr and ss else (6 <= t.hour < 19)
-            _, ic = wmo(hourly["weather_code"][i], day)
-            d.text((cx, y_h + 26), hour_label(t), font=font("regular", 32), fill=DARK, anchor="ms")
-            draw_icon(d, ic, cx, y_h + 70, 60)
-            d.text((cx, y_h + 142), deg(hourly["temperature_2m"][i]), font=font("bold", 44), fill=BLACK, anchor="ms")
-            d.text((cx, y_h + 180), deg_c(hourly["temperature_2m"][i]), font=font("regular", 32), fill=DARK, anchor="ms")
-            p = probs[i]
-            if p is not None and p >= 10:
-                pf = font("regular", 30)
-                pw = text_w(f"{int(p)}%", pf) + 24
-                draw_icon(d, "raindrop", cx - pw / 2 + 8, y_h + 206, 22, fill=DARK)
-                d.text((cx - pw / 2 + 24, y_h + 216), f"{int(p)}%", font=pf, fill=DARK, anchor="ls")
+    # ---- Next 12 hours: temperature line, rain bars, a label every 3 hours ----
+    draw_hourly_chart(img, d, hourly, daily, now_naive, y, WEATHER_BOTTOM)
 
+
+def _smooth(xs, ys, steps=10):
+    """Catmull-Rom spline through the points, for a hand-drawn-looking line."""
+    pts = list(zip(xs, ys))
+    ext = [pts[0]] + pts + [pts[-1]]
+    out = []
+    for i in range(1, len(ext) - 2):
+        (x0, y0), (x1, y1), (x2, y2), (x3, y3) = ext[i - 1], ext[i], ext[i + 1], ext[i + 2]
+        for k in range(steps):
+            t = k / steps
+            t2, t3 = t * t, t * t * t
+            out.append((0.5 * (2 * x1 + (-x0 + x2) * t + (2 * x0 - 5 * x1 + 4 * x2 - x3) * t2 + (-x0 + 3 * x1 - 3 * x2 + x3) * t3),
+                        0.5 * (2 * y1 + (-y0 + y2) * t + (2 * y0 - 5 * y1 + 4 * y2 - y3) * t2 + (-y0 + 3 * y1 - 3 * y2 + y3) * t3)))
+    out.append(pts[-1])
+    return out
+
+
+def _layer(w, h, S=4):
+    im = Image.new("L", (int(w * S), int(h * S)), WHITE)
+    return im, ImageDraw.Draw(im)
+
+
+def draw_daylight(img, d, x0, x1, y0, sunrise, sunset, now_n):
+    """Sunrise-to-sunset bar: thick black for daylight gone, thin gray for daylight left, a sun at now."""
+    S = 4
+    h = 60
+    lay, ld = _layer(x1 - x0, h)
+    by = 28                         # bar centre within the layer
+    w = x1 - x0
+    pad = 16                        # room for the marker at either end
+    a, b = pad, w - pad
+    if now_n <= sunrise:
+        frac, marker = 0.0, "moon"
+    elif now_n >= sunset:
+        frac, marker = 1.0, "moon"
+    else:
+        frac, marker = (now_n - sunrise) / (sunset - sunrise), "sun"
+    mx = a + (b - a) * frac
+    ld.line([(a * S, by * S), (b * S, by * S)], fill=RULE, width=4 * S)
+    for x in (a, b):
+        ld.ellipse([(x - 2) * S, (by - 2) * S, (x + 2) * S, (by + 2) * S], fill=RULE)
+    if mx > a:
+        ld.line([(a * S, by * S), (mx * S, by * S)], fill=BLACK, width=7 * S)
+        ld.ellipse([(a - 3.5) * S, (by - 3.5) * S, (a + 3.5) * S, (by + 3.5) * S], fill=BLACK)
+    if marker == "sun":
+        for k in range(8):
+            t = math.radians(k * 45)
+            ld.line([((mx + 15 * math.cos(t)) * S, (by + 15 * math.sin(t)) * S),
+                     ((mx + 21 * math.cos(t)) * S, (by + 21 * math.sin(t)) * S)], fill=BLACK, width=round(3.5 * S))
+        ld.ellipse([(mx - 10) * S, (by - 10) * S, (mx + 10) * S, (by + 10) * S], fill=WHITE, outline=BLACK, width=round(3.5 * S))
+    else:
+        ld.ellipse([(mx - 11) * S, (by - 11) * S, (mx + 11) * S, (by + 11) * S], fill=BLACK)
+        ld.ellipse([(mx - 4) * S, (by - 15) * S, (mx + 15) * S, (by + 4) * S], fill=WHITE)
+    img.paste(lay.resize((int(w), h), Image.LANCZOS), (int(x0), int(y0 - 2)))
+    tf = font("bold", 32)
+    d.text((x0 + 6, y0 + 78), clock(sunrise), font=tf, fill=BLACK, anchor="ls")
+    d.text((x1, y0 + 78), clock(sunset), font=tf, fill=BLACK, anchor="rs")
+    mins = int((sunset - sunrise).total_seconds() // 60)
+    d.text(((x0 + x1) / 2 + 6, y0 + 78), f"{mins // 60} h {mins % 60} m", font=font("regular", 28), fill=DARK, anchor="ms")
+
+
+def draw_hourly_chart(img, d, hourly, daily, now_n, top, bottom):
+    times = [_local(t) for t in hourly["time"]]
+    start = max((i for i, t in enumerate(times) if t <= now_n), default=0)
+    idx = list(range(start, min(start + 13, len(times))))
+    if len(idx) < 2:
+        return
+    temps = [hourly["temperature_2m"][i] for i in idx]
+    probs = [(hourly.get("precipitation_probability") or [0] * len(times))[i] or 0 for i in idx]
+    x0, x1 = MARGIN + 46, W - MARGIN - 46
+    xs = [x0 + (x1 - x0) * k / (len(idx) - 1) for k in range(len(idx))]
+    icon_cy = top + 42
+    line_top, line_bot = top + 128, top + 176
+    bar_base, bar_max = bottom - 50, 32
+    lo, hi = min(temps), max(temps)
+    span = max(hi - lo, 4)
+    ys = [line_bot - (t - lo) / span * (line_bot - line_top) for t in temps]
+    marks = list(range(0, len(idx), 3))
+
+    S = 4
+    lay, ld = _layer(W, bottom - top)
+    Y = lambda v: (v - top) * S  # noqa: E731
+    # Rain chance: one bar per hour, height = probability.
+    ld.line([(x0 - 14) * S, Y(bar_base) + S, (x1 + 14) * S, Y(bar_base) + S], fill=RULE, width=2 * S)
+    for x, pr in zip(xs, probs):
+        if pr >= 20:
+            hgt = max(4, bar_max * pr / 100)
+            ld.rounded_rectangle([(x - 9) * S, Y(bar_base - hgt), (x + 9) * S, Y(bar_base)], radius=3 * S, fill=153)
+    # Temperature line and dots at the labelled hours; "now" gets a ring.
+    ld.line([(x * S, Y(y)) for x, y in _smooth(xs, ys)], fill=BLACK, width=5 * S, joint="curve")
+    for k in marks:
+        x, y = xs[k], ys[k]
+        r = 11 if k == 0 else 7
+        ld.ellipse([(x - r) * S, Y(y - r), (x + r) * S, Y(y + r)], fill=BLACK)
+        if k == 0:
+            ld.ellipse([(x - 5) * S, Y(y - 5), (x + 5) * S, Y(y + 5)], fill=WHITE)
+    img.paste(lay.resize((W, bottom - top), Image.LANCZOS), (0, top))
+
+    sun = {t: (_local(daily["sunrise"][k]), _local(daily["sunset"][k])) for k, t in enumerate(daily["time"])}
+    tf, cf, lf = font("bold", 38), font("regular", 26), font("regular", 30)
+    for k in marks:
+        i, x, y = idx[k], xs[k], ys[k]
+        t = times[i]
+        sr, ss = sun.get(t.date().isoformat(), (None, None))
+        day = (sr <= t < ss) if sr and ss else (6 <= t.hour < 19)
+        draw_icon(d, wmo(hourly["weather_code"][i], day)[1], x, icon_cy, 46)
+        f_txt, c_txt = deg(temps[k]), " " + deg_c(temps[k])
+        wf, wc = text_w(f_txt, tf), text_w(c_txt, cf)
+        lx = min(max(x - (wf + wc) / 2, MARGIN), W - MARGIN - wf - wc)   # keep edge labels inside the margins
+        d.text((lx, y - 22), f_txt, font=tf, fill=BLACK, anchor="ls")
+        d.text((lx + wf, y - 22), c_txt, font=cf, fill=DARK, anchor="ls")
+        d.text((x, bottom - 12), "Now" if k == 0 else hour_label(t), font=lf, fill=BLACK if k == 0 else DARK, anchor="ms")
+    # Label the wettest hour if rain is worth mentioning.
+    wet = max(range(len(idx)), key=lambda k: probs[k])
+    if probs[wet] >= 30:
+        hgt = max(4, bar_max * probs[wet] / 100)
+        d.text((xs[wet] + 14, bar_base - hgt + 18), f"{int(probs[wet])}%", font=font("regular", 26), fill=DARK, anchor="ls")
 
 SNOW_CODES = {71, 73, 75, 77, 85, 86}
 
@@ -540,15 +634,17 @@ def draw_todo(d, x0, x1, top, bottom, open_items, done_items):
     section_label(d, x0, top + 30, "To-do",
                   f"{len(open_items)} open" if open_items else None, x1)
     y = top + 76
-    f = font("regular", 38)
-    lh = 50
+    n = len(open_items)
+    size = 44 if n <= 3 else 40 if n <= 5 else 38      # short lists get bigger type
+    f = font("regular", size)
+    lh = size + 12
     box = 30
     tx = x0 + box + 22
     tw = x1 - tx
 
     if not open_items and not done_items:
         d.text((x0, y + 38), "Nothing on the list.", font=font("italic", 38), fill=DARK, anchor="ls")
-        return
+        return y + 60
 
     if not open_items:
         d.text((x0, y + 38), "All done!", font=font("bold", 38), fill=BLACK, anchor="ls")
@@ -561,18 +657,18 @@ def draw_todo(d, x0, x1, top, bottom, open_items, done_items):
         fit = int((bottom - y - reserve) // lh)   # lines still available
         if fit < 1:
             break
-        lines = wrap(item, f, tw, max_lines=min(2, fit))
+        lines = wrap(item, f, tw, max_lines=min(3 if n <= 3 else 2, fit))
         need = len(lines) * lh
-        draw_checkbox(d, x0, y + 10, box, False)
+        draw_checkbox(d, x0, y + size - 28, box, False)
         for k, ln in enumerate(lines):
-            d.text((tx, y + 38 + k * lh), ln, font=f, fill=BLACK, anchor="ls")
+            d.text((tx, y + size + k * lh), ln, font=f, fill=BLACK, anchor="ls")
         y += need + 16
         shown += 1
 
     hidden_open = len(open_items) - shown
     if hidden_open:
         d.text((tx, y + 34), f"+{hidden_open} more", font=font("bold", 34), fill=DARK, anchor="ls")
-        return
+        return y + 50
 
     # Done items: de-emphasised, one line each, only while space remains.
     df = font("regular", 34)
@@ -595,6 +691,8 @@ def draw_todo(d, x0, x1, top, bottom, open_items, done_items):
     hidden_done = len(done_items) - shown_done
     if hidden_done:
         d.text((tx, y + 34), f"+{hidden_done} done", font=font("regular", 32), fill=DARK, anchor="ls")
+        y += 50
+    return y
 
 
 # --------------------------------------------------------------------------
@@ -614,7 +712,7 @@ def draw_coffee(img, d, x0, x1, top, bottom, shown, cup_mood="awake"):
     y = top + 76
 
     # Cartoon cup in the bottom-right corner; rows beside it wrap short of it.
-    mascot = doodles.coffee_cup(170, cup_mood)
+    mascot = doodles.coffee_cup(170, cup_mood, CUP_SEASON)
     mx, my = int(x1 - mascot.width), int(bottom - mascot.height)
     img.paste(mascot, (mx, my))
 
@@ -661,7 +759,7 @@ def draw_coffee_pair(img, d, x0, x1, top, bottom, shown, cup_mood="awake"):
     # Column heads: kind (small caps) then the bean name, shrunk or wrapped to fit.
     y = top + 82
     for cx, kind in zip(cols, ("Regular", "Decaf")):
-        section_label(d, cx, y + 26, kind)
+        section_label(d, cx, y + 26, kind, minor=True)
     y += 44
     # One size for both names: the largest at which every word fits its column.
     words = [w for b in shown for w in b["name"].split()] or [""]
@@ -691,7 +789,7 @@ def draw_coffee_pair(img, d, x0, x1, top, bottom, shown, cup_mood="awake"):
     # Cartoon cup in the bottom-right corner, if the rows left room for it.
     room = bottom - y - 8
     if room >= 110:
-        mascot = doodles.coffee_cup(min(170, room), cup_mood)
+        mascot = doodles.coffee_cup(min(170, room), cup_mood, CUP_SEASON)
         img.paste(mascot, (int(x1 - mascot.width), int(bottom - mascot.height)))
 
 
@@ -728,7 +826,7 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     hrule(d, 134, fill=BLACK, width=4)
 
     # Weather
-    weather_top, weather_bottom = 158, 844
+    weather_top, weather_bottom = 158, WEATHER_BOTTOM
     draw_weather(img, d, wx, now, weather_top, weather_bottom)
     hrule(d, weather_bottom, fill=BLACK, width=4)
 
@@ -742,16 +840,19 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     d.rectangle([lx1 + gutter / 2 - 1, low_top + 8, lx1 + gutter / 2, low_bottom], fill=RULE)
     try:
         open_items, done_items = load_todos(todo_path)
-        draw_todo(d, lx0, lx1, low_top, low_bottom, open_items, done_items)
-        mood = "cheer" if not open_items else "busy" if len(open_items) >= 6 else "happy"
-        board = doodles.clipboard(175, mood)
-        bx, by = int(lx0), int(low_bottom - board.height)
-        if img.crop((bx, by - 16, bx + board.width, by + board.height)).getextrema() == (WHITE, WHITE):
-            img.paste(board, (bx, by))
+        list_end = draw_todo(d, lx0, lx1, low_top, low_bottom, open_items, done_items) or low_bottom
+        # Clipboard centred in the space the list leaves, so short lists don't leave a hole.
+        free = low_bottom - list_end
+        if free >= 150:
+            mood = "cheer" if not open_items else "busy" if len(open_items) >= 6 else "happy"
+            board = doodles.clipboard(int(min(215, free - 40) * 200 / 212), mood)
+            img.paste(board, (int((lx0 + lx1 - board.width) / 2), int(list_end + (free - board.height) / 2)))
     except Exception as e:  # noqa: BLE001  never let one section kill the image
         warn(f"to-do section failed ({e.__class__.__name__}: {e})")
     try:
         cup_mood = "sleepy" if now.hour >= 17 or now.hour < 5 else "awake"
+        global CUP_SEASON
+        CUP_SEASON = doodles.season_for(now.month)
         draw_coffee(img, d, rx0, rx1, low_top, low_bottom, pick_beans(*load_beans(coffee_path), now), cup_mood)
     except Exception as e:  # noqa: BLE001
         warn(f"coffee section failed ({e.__class__.__name__}: {e})")

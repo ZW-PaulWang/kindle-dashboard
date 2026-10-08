@@ -198,3 +198,17 @@ show_stale_if_old() {
     log "Image is $((age / 60)) minutes old; showing the stale banner"
     draw_overlay "$DIR/stale.png" $STALE_X $STALE_Y
 }
+
+# Black-then-white flash that clears e-ink ghosting; run once a day when the dashboard wakes.
+deep_clean() {
+    fb="$(find_fbink)"
+    if [ -n "$fb" ]; then
+        "$fb" -q -k -f -h
+        sleep 1
+        "$fb" -q -k -f
+    else
+        eips -c
+        sleep 1
+        eips -c
+    fi
+}
