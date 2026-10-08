@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the Kindle e-ink dashboard (weather, to-do, coffee of the day) to a PNG.
+"""Render the Kindle e-ink dashboard (weather today and by hour, to-do, coffee) to a PNG.
 
 Target: Kindle Paperwhite 5 (11th gen), 1236x1648 portrait, 16 gray levels.
 Dependencies: Pillow + Python stdlib only.
@@ -43,7 +43,7 @@ WEATHER_URL = (
     "wind_speed_10m,is_day"
     "&hourly=temperature_2m,precipitation_probability,weather_code"
     "&daily=weather_code,temperature_2m_max,temperature_2m_min,"
-    "precipitation_probability_max,sunrise,sunset&forecast_days=4"
+    "precipitation_probability_max,sunrise,sunset&forecast_days=2"
 )
 
 W, H = 1236, 1648
@@ -461,60 +461,6 @@ def _draw_weather(img, d, wx, now, top):
                 pw = text_w(f"{int(p)}%", pf) + 24
                 draw_icon(d, "raindrop", cx - pw / 2 + 8, y_h + 168, 22, fill=DARK)
                 d.text((cx - pw / 2 + 24, y_h + 178), f"{int(p)}%", font=pf, fill=DARK, anchor="ls")
-    y = y + 222
-    hrule(d, y)
-
-    # ---- Next 3 days ----
-    y_d = y + 24
-    days = [k for k in range(di + 1, min(di + 4, len(daily["time"])))]
-    if not days:
-        return
-    probs_d = daily.get("precipitation_probability_max") or [None] * len(daily["time"])
-    nf, hf, lf, pf = font("semibold", 38), font("bold", 40), font("regular", 40), font("regular", 32)
-    icon_w, gap = 76, 18
-    cards = []
-    for k in days:
-        dt = _local(daily["time"][k])
-        p = probs_d[k]
-        cards.append(dict(
-            dt=dt, icon=wmo(daily["weather_code"][k], True)[1],
-            hi=deg(daily["temperature_2m_max"][k]), lo=deg(daily["temperature_2m_min"][k]),
-            rain=f"{int(p)}%" if p is not None and p >= 10 else ""))
-
-    def line2_w(c, rain_inline):
-        w = text_w(c["hi"], hf) + 14 + text_w(c["lo"], lf)
-        return w + (22 + 28 + text_w(c["rain"], pf) if c["rain"] and rain_inline else 0)
-
-    def card_w(c, fmt, rain_on_2):
-        line1 = text_w(c["dt"].strftime(fmt), nf)
-        if c["rain"] and not rain_on_2:
-            line1 += 18 + 28 + text_w(c["rain"], pf)
-        return icon_w + gap + max(line1, line2_w(c, rain_on_2))
-
-    # Variants from roomiest to most compact; first whose cards fit with >=40px gaps wins.
-    for fmt, rain_on_2 in (("%A", True), ("%a", True), ("%a", False)):
-        widths = [card_w(c, fmt, rain_on_2) for c in cards]
-        if sum(widths) + 40 * (len(cards) - 1) <= CONTENT_W:
-            break
-    # Justify: first card flush left, last flush right, equal gaps between.
-    spacing = (CONTENT_W - sum(widths)) / (len(cards) - 1) if len(cards) > 1 else 0
-    x = MARGIN
-    for c, cw in zip(cards, widths):
-        draw_icon(d, c["icon"], x + icon_w / 2, y_d + 50, 76)
-        tx = x + icon_w + gap
-        name = c["dt"].strftime(fmt)
-        d.text((tx, y_d + 36), name, font=nf, fill=BLACK, anchor="ls")
-        d.text((tx, y_d + 86), c["hi"], font=hf, fill=BLACK, anchor="ls")
-        hx = tx + text_w(c["hi"], hf) + 14
-        d.text((hx, y_d + 86), c["lo"], font=lf, fill=DARK, anchor="ls")
-        if c["rain"]:
-            if rain_on_2:
-                rx, ry = hx + text_w(c["lo"], lf) + 22, y_d + 86
-            else:
-                rx, ry = tx + text_w(name, nf) + 18, y_d + 36
-            draw_icon(d, "raindrop", rx + 9, ry - 13, 22, fill=DARK)
-            d.text((rx + 28, ry), c["rain"], font=pf, fill=DARK, anchor="ls")
-        x += cw + spacing
 
 
 # --------------------------------------------------------------------------
@@ -721,7 +667,7 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     hrule(d, 134, fill=BLACK, width=4)
 
     # Weather
-    weather_top, weather_bottom = 158, 876
+    weather_top, weather_bottom = 158, 758
     draw_weather(img, d, wx, now, weather_top, weather_bottom)
     hrule(d, weather_bottom, fill=BLACK, width=4)
 
