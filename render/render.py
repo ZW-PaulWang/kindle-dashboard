@@ -18,7 +18,7 @@ import re
 import sys
 import unicodedata
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -43,7 +43,7 @@ WEATHER_URL = (
     "wind_speed_10m,is_day"
     "&hourly=temperature_2m,precipitation_probability,weather_code"
     "&daily=weather_code,temperature_2m_max,temperature_2m_min,"
-    "precipitation_probability_max,sunrise,sunset&forecast_days=2"
+    "precipitation_probability_max,sunrise,sunset&forecast_days=2&past_days=1"
 )
 
 W, H = 1236, 1648
@@ -427,8 +427,15 @@ def _draw_weather(img, d, wx, now, top):
         d.text((x, y), part, font=f, fill=col, anchor="ls")
         x += text_w(part, f)
 
+    # ---- One sentence in plain words ----
+    sentence = weather_sentence(wx, now)
+    sy = hero_top + hero_h + 58
+    if sentence:
+        sf = fit_font("medium", sentence, CONTENT_W, 38, 30)
+        d.text((MARGIN, sy), ellipsize(sentence, sf, CONTENT_W), font=sf, fill=BLACK, anchor="ls")
+
     # ---- Stat row ----
-    y0 = hero_top + hero_h + 12
+    y0 = sy + 22
     stats = []
     pp = daily.get("precipitation_probability_max", [None] * (di + 1))[di]
     stats.append(("umbrella", f"{int(pp) if pp is not None else 0}%", "Rain"))
@@ -472,6 +479,49 @@ def _draw_weather(img, d, wx, now, top):
                 pw = text_w(f"{int(p)}%", pf) + 24
                 draw_icon(d, "raindrop", cx - pw / 2 + 8, y_h + 206, 22, fill=DARK)
                 d.text((cx - pw / 2 + 24, y_h + 216), f"{int(p)}%", font=pf, fill=DARK, anchor="ls")
+
+
+SNOW_CODES = {71, 73, 75, 77, 85, 86}
+
+
+def weather_sentence(wx: dict, now: datetime) -> str:
+    """One plain sentence about the next 12 hours, plus a comparison with yesterday when it's notable."""
+    hourly, daily = wx["hourly"], wx["daily"]
+    now_n = now.replace(tzinfo=None)
+    times = [_local(t) for t in hourly["time"]]
+    probs = [p or 0 for p in (hourly.get("precipitation_probability") or [0] * len(times))]
+    codes = [c if c is not None else -1 for c in hourly["weather_code"]]
+    win = [i for i, t in enumerate(times) if now_n - timedelta(minutes=59) <= t <= now_n + timedelta(hours=12)]
+    if not win:
+        return ""
+    at = lambda i: "now" if times[i] <= now_n else f"around {hour_label(times[i])}"  # noqa: E731
+    parts = []
+    storm = next((i for i in win if codes[i] >= 95), None)
+    snow = next((i for i in win if codes[i] in SNOW_CODES and probs[i] >= 40), None)
+    rain = next((i for i in win if probs[i] >= 50), None)
+    if storm is not None:
+        parts.append(f"Thunderstorms possible {at(storm)}.")
+    elif snow is not None:
+        parts.append("Snow likely now." if times[snow] <= now_n else f"Snow likely from about {hour_label(times[snow])}.")
+    elif rain is not None:
+        if times[rain] <= now_n:
+            end = next((i for i in win if i > rain and probs[i] < 30), None)
+            parts.append(f"Rain until about {hour_label(times[end])}." if end is not None else "Rain on and off for the next 12 hours.")
+        else:
+            parts.append(f"Rain likely from about {hour_label(times[rain])}. Take an umbrella.")
+    else:
+        peak = max(win, key=lambda i: probs[i])
+        if probs[peak] >= 30:
+            parts.append(f"A chance of showers {at(peak)}.")
+        else:
+            parts.append("No rain expected tonight." if now_n.hour >= 18 else "No rain expected today.")
+    days = daily["time"]
+    today, yday = now_n.date().isoformat(), (now_n.date() - timedelta(days=1)).isoformat()
+    if today in days and yday in days:
+        diff = round(daily["temperature_2m_max"][days.index(today)] - daily["temperature_2m_max"][days.index(yday)])
+        if abs(diff) >= 6:
+            parts.append(f"{abs(diff)}° {'warmer' if diff > 0 else 'colder'} than yesterday.")
+    return " ".join(parts)
 
 
 # --------------------------------------------------------------------------
@@ -550,9 +600,9 @@ def draw_todo(d, x0, x1, top, bottom, open_items, done_items):
 # --------------------------------------------------------------------------
 # Coffee section
 # --------------------------------------------------------------------------
-def draw_coffee(img, d, x0, x1, top, bottom, shown):
+def draw_coffee(img, d, x0, x1, top, bottom, shown, cup_mood="awake"):
     if len(shown) == 2:
-        draw_coffee_pair(img, d, x0, x1, top, bottom, shown)
+        draw_coffee_pair(img, d, x0, x1, top, bottom, shown, cup_mood)
         return
     section_label(d, x0, top + 30, "Coffee of the day")
     if not shown:
@@ -564,7 +614,7 @@ def draw_coffee(img, d, x0, x1, top, bottom, shown):
     y = top + 76
 
     # Cartoon cup in the bottom-right corner; rows beside it wrap short of it.
-    mascot = doodles.coffee_cup(170)
+    mascot = doodles.coffee_cup(170, cup_mood)
     mx, my = int(x1 - mascot.width), int(bottom - mascot.height)
     img.paste(mascot, (mx, my))
 
@@ -597,7 +647,7 @@ def fit_font(style: str, s: str, max_w: float, size: int, min_size: int) -> Imag
     return font(style, size)
 
 
-def draw_coffee_pair(img, d, x0, x1, top, bottom, shown):
+def draw_coffee_pair(img, d, x0, x1, top, bottom, shown, cup_mood="awake"):
     """Regular and decaf side by side: one column per bean, one row per setting."""
     section_label(d, x0, top + 30, "Coffee")
     keys: list[str] = []
@@ -641,7 +691,7 @@ def draw_coffee_pair(img, d, x0, x1, top, bottom, shown):
     # Cartoon cup in the bottom-right corner, if the rows left room for it.
     room = bottom - y - 8
     if room >= 110:
-        mascot = doodles.coffee_cup(min(170, room))
+        mascot = doodles.coffee_cup(min(170, room), cup_mood)
         img.paste(mascot, (int(x1 - mascot.width), int(bottom - mascot.height)))
 
 
@@ -678,7 +728,7 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     hrule(d, 134, fill=BLACK, width=4)
 
     # Weather
-    weather_top, weather_bottom = 158, 776
+    weather_top, weather_bottom = 158, 844
     draw_weather(img, d, wx, now, weather_top, weather_bottom)
     hrule(d, weather_bottom, fill=BLACK, width=4)
 
@@ -693,14 +743,16 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     try:
         open_items, done_items = load_todos(todo_path)
         draw_todo(d, lx0, lx1, low_top, low_bottom, open_items, done_items)
-        board = doodles.clipboard(175)
+        mood = "cheer" if not open_items else "busy" if len(open_items) >= 6 else "happy"
+        board = doodles.clipboard(175, mood)
         bx, by = int(lx0), int(low_bottom - board.height)
         if img.crop((bx, by - 16, bx + board.width, by + board.height)).getextrema() == (WHITE, WHITE):
             img.paste(board, (bx, by))
     except Exception as e:  # noqa: BLE001  never let one section kill the image
         warn(f"to-do section failed ({e.__class__.__name__}: {e})")
     try:
-        draw_coffee(img, d, rx0, rx1, low_top, low_bottom, pick_beans(*load_beans(coffee_path), now))
+        cup_mood = "sleepy" if now.hour >= 17 or now.hour < 5 else "awake"
+        draw_coffee(img, d, rx0, rx1, low_top, low_bottom, pick_beans(*load_beans(coffee_path), now), cup_mood)
     except Exception as e:  # noqa: BLE001
         warn(f"coffee section failed ({e.__class__.__name__}: {e})")
 
@@ -711,6 +763,59 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     d.text((W - MARGIN, H - 56), f"Updated {clock(now)}", font=ff, fill=DARK, anchor="rs")
 
     # Quantize to the panel's 16 gray levels (multiples of 17).
+    return img.point([min(255, int(v / 17 + 0.5) * 17) for v in range(256)])
+
+
+# Footer slots the Kindle draws into (keep in sync with kindle/dashboard/bin/common.sh).
+STALE_W, STALE_H = 420, 50
+STALE_X, STALE_Y = W - MARGIN - STALE_W, H - 92
+
+
+def render_stale(now: datetime) -> Image.Image:
+    """Bold black pill the Kindle shows over the footer when this image is more than 3 hours old."""
+    S = 4
+    im = Image.new("L", (STALE_W * S, STALE_H * S), WHITE)
+    d = ImageDraw.Draw(im)
+    text = f"Last updated {clock(now)}"
+    f = font("bold", 30 * S)
+    tw = d.textlength(text, font=f)
+    pad = 20 * S
+    x1 = STALE_W * S
+    d.rounded_rectangle([x1 - tw - 2 * pad, 4 * S, x1, (STALE_H - 4) * S], radius=21 * S, fill=BLACK)
+    d.text((x1 - pad, 36 * S), text, font=f, fill=WHITE, anchor="rs")
+    out = im.resize((STALE_W, STALE_H), Image.LANCZOS)
+    return out.point([min(255, int(v / 17 + 0.5) * 17) for v in range(256)])
+
+
+def render_night(now: datetime, wx: dict | None) -> Image.Image:
+    """Shown from midnight to 6 AM while the Kindle sleeps: a sleepy moon and the coming day's weather."""
+    img = Image.new("L", (W, H), WHITE)
+    d = ImageDraw.Draw(img)
+    moon = doodles.weather("moon", 420)
+    img.paste(moon, ((W - moon.width) // 2, 170))
+    d.text((W / 2, 720), "Good night", font=font("bold", 84), fill=BLACK, anchor="ms")
+    d.text((W / 2, 790), "The dashboard is asleep until 6 AM.", font=font("regular", 40), fill=DARK, anchor="ms")
+    day = now.date() if now.hour < 6 else now.date() + timedelta(days=1)
+    try:
+        daily = wx["daily"]
+        i = daily["time"].index(day.isoformat())
+        top = 900
+        hrule(d, top)
+        d.text((MARGIN, top + 76), f"{day:%A}", font=font("semibold", 48), fill=BLACK, anchor="ls")
+        code = daily["weather_code"][i]
+        art = doodles.weather(doodles.weather_kind(code, True), 230)
+        img.paste(art, (MARGIN, top + 120))
+        x = MARGIN + 270
+        d.text((x, top + 230), f"{deg(daily['temperature_2m_max'][i])}", font=font("bold", 120), fill=BLACK, anchor="ls")
+        hx = x + text_w(deg(daily["temperature_2m_max"][i]), font("bold", 120)) + 30
+        d.text((hx, top + 230), f"/ {deg(daily['temperature_2m_min'][i])}", font=font("regular", 64), fill=DARK, anchor="ls")
+        d.text((x, top + 300), wmo(code)[0], font=font("semibold", 48), fill=BLACK, anchor="ls")
+        pp = daily.get("precipitation_probability_max", [None] * (i + 1))[i]
+        if pp is not None:
+            d.text((x, top + 356), f"{int(pp)}% chance of rain", font=font("regular", 40), fill=DARK, anchor="ls")
+        d.text((x, top + 408), f"Sunrise {clock(_local(daily['sunrise'][i]))}", font=font("regular", 40), fill=DARK, anchor="ls")
+    except Exception as e:  # noqa: BLE001  (no forecast: the moon alone is fine)
+        warn(f"night forecast skipped ({e.__class__.__name__}: {e})")
     return img.point([min(255, int(v / 17 + 0.5) * 17) for v in range(256)])
 
 
@@ -736,7 +841,11 @@ def main(argv=None) -> int:
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, format="PNG", optimize=True)
-    print(f"wrote {out} ({img.size[0]}x{img.size[1]}, mode {img.mode})")
+    # Companions the Kindle downloads with the image: render time, stale banner and night screen.
+    render_stale(now).save(out.parent / "stale.png", optimize=True)
+    render_night(now, wx).save(out.parent / "night.png", optimize=True)
+    (out.parent / "meta.json").write_text(json.dumps({"rendered_at": int(now.timestamp()), "label": clock(now)}) + "\n")
+    print(f"wrote {out} ({img.size[0]}x{img.size[1]}, mode {img.mode}) + stale.png, night.png, meta.json")
     return 0
 
 

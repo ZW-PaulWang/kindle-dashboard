@@ -22,8 +22,8 @@ To host the page: Settings → Pages → Build and deployment → Deploy from a 
 
 ## How it works
 
-1. `.github/workflows/render.yml` runs `render/render.py` at :20 and :50 every hour (GitHub runs schedules on a best-effort basis and skips some) and on every push. It fetches the weather from [Open-Meteo](https://open-meteo.com/) and draws a 1236×1648 grayscale PNG.
-2. The image is force-pushed as a single commit to the `output` branch, so history doesn't grow.
+1. `.github/workflows/render.yml` runs `render/render.py` when the Kindle asks for it (just before each hourly download), on every push, and every 3 hours as a backup. It fetches the weather from [Open-Meteo](https://open-meteo.com/) and draws a 1236×1648 grayscale PNG, plus `meta.json` (render time), `stale.png` (the "Last updated" banner) and `night.png` (the midnight-to-6 AM screen).
+2. These files are force-pushed as a single commit to the `output` branch, so history doesn't grow.
 3. On the Kindle, the KUAL extension in `kindle/dashboard/` stops the Kindle UI and downloads and displays the image hourly. It then draws a battery indicator (icon, exact %, charging bolt) in the middle of the footer, because only the Kindle knows the level. The icons are pre-rendered by `render/battery.py` into `kindle/dashboard/battery/`, and the indicator is redrawn every 10 minutes. To get the normal Kindle UI back, double-tap the screen (uses KOReader's LuaJIT). In an emergency, hold the power button ~15 s to restart.
 
 ## Render locally
@@ -41,3 +41,17 @@ python render/render.py --out out/dashboard.png --weather-json render/sample_wea
 3. In KUAL, run **Dashboard → Test download**, then **Start dashboard**. Logs are written to `extensions/dashboard/dashboard.log`.
 
 Changes to `kindle/dashboard/` (for example the battery level) reach the Kindle only when you copy the folder again over USB. Keep your `config.sh`. The image itself always comes from GitHub.
+
+## Adding to-dos from an iPhone
+
+`.github/workflows/add-todo.yml` appends a to-do and re-renders. An iPhone Shortcut runs it with one request:
+
+- `POST https://api.github.com/repos/ZW-PaulWang/kindle-dashboard/actions/workflows/add-todo.yml/dispatches`
+- Headers: `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`
+- JSON body: `{"ref": "main", "inputs": {"item": "<the to-do>"}}`
+
+The token needs **Actions: Read and write** on this repository.
+
+## Night sleep
+
+From midnight to 6 AM the Kindle shows `night.png`, turns Wi-Fi off and tries to suspend until morning (set `NIGHT_SUSPEND=0` in `config.sh` to only idle). Change the hours with `NIGHT_START` and `NIGHT_END`.

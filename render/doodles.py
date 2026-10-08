@@ -58,12 +58,14 @@ class Canvas:
 # Building blocks
 # --------------------------------------------------------------------------
 def face(c: Canvas, cx, cy, s=1.0, mood="happy"):
-    """Two eyes, blush and a mouth. mood: happy | sleepy | worried."""
+    """Two eyes, blush and a mouth. mood: happy | sleepy | worried | cheer."""
     ex = 16 * s
     for sx in (-1, 1):
         x = cx + sx * ex
         if mood == "sleepy":
             c.arc(x - 7 * s, cy - 7 * s, x + 7 * s, cy + 5 * s, 20, 160, width=4.5 * s)
+        elif mood == "cheer":   # ^ ^ smiling eyes
+            c.arc(x - 7 * s, cy - 4 * s, x + 7 * s, cy + 10 * s, 200, 340, width=4.5 * s)
         else:
             c.oval(x, cy, 6 * s, 8.5 * s)
             c.oval(x - 2 * s, cy - 3.5 * s, 2.4 * s, 2.4 * s, fill=PAPER)
@@ -71,6 +73,8 @@ def face(c: Canvas, cx, cy, s=1.0, mood="happy"):
     if mood == "worried":
         c.d.ellipse(c.box(cx - 5 * s, cy + 7 * s, cx + 5 * s, cy + 18 * s),
                     outline=INK, width=round(4 * s * S), fill=PAPER)
+    elif mood == "cheer":   # wide open grin
+        c.d.chord(c.box(cx - 11 * s, cy - 4 * s, cx + 11 * s, cy + 20 * s), 0, 180, fill=INK)
     else:
         c.arc(cx - 8 * s, cy + 2 * s, cx + 8 * s, cy + 16 * s, 20, 160, width=4.5 * s)
 
@@ -129,6 +133,14 @@ def flake(c: Canvas, cx, cy, r):
     for i in range(3):
         a = i * math.pi / 3 + math.pi / 2
         c.line([(cx - math.cos(a) * r, cy - math.sin(a) * r), (cx + math.cos(a) * r, cy + math.sin(a) * r)], width=5)
+
+
+def sweat(c: Canvas, cx, cy, r):
+    pts = [(cx * S, (cy - 2.2 * r) * S)]
+    for a in range(-20, 201, 10):
+        t = math.radians(a)
+        pts.append(((cx + r * math.cos(t)) * S, (cy + r * math.sin(t)) * S))
+    c.d.polygon(pts, fill=PAPER, outline=INK, width=round(4 * S))
 
 
 def sparkle(c: Canvas, cx, cy, r):
@@ -204,8 +216,8 @@ def weather(kind: str, size: int) -> Image.Image:
 # --------------------------------------------------------------------------
 # Section mascots
 # --------------------------------------------------------------------------
-def clipboard(size: int) -> Image.Image:
-    """A smiling clipboard with two ticked lines and a pencil leaning on it."""
+def clipboard(size: int, mood: str = "happy") -> Image.Image:
+    """A clipboard with ticked lines and a pencil. mood: happy | cheer (all done) | busy (long list)."""
     c = Canvas(200, 212)
     c.d.rounded_rectangle(c.box(38, 30, 156, 200), radius=16 * S, fill=PAPER, outline=INK, width=LW * S)
     c.d.rounded_rectangle(c.box(74, 16, 120, 44), radius=10 * S, fill=SHADE, outline=INK, width=LW * S)
@@ -214,7 +226,15 @@ def clipboard(size: int) -> Image.Image:
         c.d.rounded_rectangle(c.box(54, y - 9, 72, y + 9), radius=4 * S, outline=INK, width=round(4.5 * S))
         c.line([(57, y), (62, y + 5), (70, y - 6)], width=4.5)
         c.line([(82, y), (138, y)], width=5)
-    face(c, 97, 146, 1.0)
+    if mood == "cheer":
+        face(c, 97, 146, 1.0, mood="cheer")
+        for x, y, r in ((22, 40, 9), (12, 112, 6), (176, 30, 7)):
+            sparkle(c, x, y, r)
+    elif mood == "busy":
+        face(c, 97, 146, 1.0, mood="worried")
+        sweat(c, 140, 132, 7)
+    else:
+        face(c, 97, 146, 1.0)
     # Pencil: eraser end A, tip B.
     ax, ay, bx, by = 186, 92, 160, 194
     ux, uy = bx - ax, by - ay
@@ -237,33 +257,39 @@ def clipboard(size: int) -> Image.Image:
     return c.render(size)
 
 
-def coffee_cup(size: int) -> Image.Image:
-    """A smiling mug on a saucer, with steam curling into a heart."""
+def coffee_cup(size: int, mood: str = "awake") -> Image.Image:
+    """A mug on a saucer. awake: big eyes, steam curling into a heart. sleepy: closed eyes, a drowsy z z."""
     c = Canvas(200, 212)
-    for cx, phase in ((58, 0.0), (122, math.pi)):
-        c.line([(cx + 6 * math.sin(t / 10 + phase), 74 - t) for t in range(0, 34)], width=5)
-    heart = []
-    for i in range(0, 361, 4):
-        t = math.radians(i)
-        x = 16 * math.sin(t) ** 3
-        y = 13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t)
-        heart.append(((90 + x * 1.35) * S, (38 - y * 1.35) * S))
-    c.d.line(heart + heart[:2], fill=INK, width=5 * S, joint="curve")
+    if mood == "sleepy":
+        c.line([(90 + 5 * math.sin(t / 9), 72 - t) for t in range(0, 30)], width=5)
+        c.line([(132, 30), (148, 30), (132, 46), (148, 46)], width=4.5)
+        c.line([(156, 6), (168, 6), (156, 18), (168, 18)], width=4)
+    else:
+        for cx, phase in ((58, 0.0), (122, math.pi)):
+            c.line([(cx + 6 * math.sin(t / 10 + phase), 74 - t) for t in range(0, 34)], width=5)
+        heart = []
+        for i in range(0, 361, 4):
+            t = math.radians(i)
+            x = 16 * math.sin(t) ** 3
+            y = 13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t)
+            heart.append(((90 + x * 1.35) * S, (38 - y * 1.35) * S))
+        c.d.line(heart + heart[:2], fill=INK, width=5 * S, joint="curve")
     c.d.ellipse(c.box(8, 180, 192, 208), fill=PAPER, outline=INK, width=LW * S)
     c.arc(124, 108, 184, 166, -80, 80)
     c.d.rounded_rectangle(c.box(30, 88, 150, 190), radius=30 * S, fill=PAPER, outline=INK,
                           width=LW * S, corners=(False, False, True, True))
     c.d.ellipse(c.box(30, 76, 150, 102), fill=PAPER, outline=INK, width=LW * S)
     c.d.ellipse(c.box(42, 82, 138, 96), fill=SHADE)
-    face(c, 90, 131, 1.35)
+    face(c, 90, 131, 1.35, mood="sleepy" if mood == "sleepy" else "happy")
     return c.render(size)
 
 
 if __name__ == "__main__":  # preview sheet: python render/doodles.py out/doodles.png
     import sys
     kinds = ["sun", "moon", "partly", "partly-night", "cloud", "rain", "snow", "storm", "fog"]
-    tiles = [weather(k, 200) for k in kinds] + [clipboard(200), coffee_cup(200)]
-    sheet = Image.new("L", (4 * 240, 3 * 250), PAPER)
+    tiles = [weather(k, 200) for k in kinds] + [clipboard(200), clipboard(200, "cheer"), clipboard(200, "busy"),
+                                                coffee_cup(200), coffee_cup(200, "sleepy")]
+    sheet = Image.new("L", (4 * 240, 4 * 250), PAPER)
     for i, t in enumerate(tiles):
         sheet.paste(t, ((i % 4) * 240 + 20, (i // 4) * 250 + 20))
     sheet.save(sys.argv[1] if len(sys.argv) > 1 else "doodles.png")

@@ -1,0 +1,45 @@
+name: Add a to-do
+
+# Run by the iPhone Shortcut: POST /repos/OWNER/REPO/actions/workflows/add-todo.yml/dispatches
+# with {"ref": "main", "inputs": {"item": "Buy filter papers"}}.
+on:
+  workflow_dispatch:
+    inputs:
+      item:
+        description: To-do to add
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  add:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Append to todo.md
+        env:
+          ITEM: ${{ inputs.item }}
+        run: |
+          # One line, trimmed; passed through the environment so it's never run as code.
+          item="$(printf '%s' "$ITEM" | tr '\r\n' '  ' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+          if [ -z "$item" ]; then echo "::error::The to-do is empty"; exit 1; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git pull -q --rebase origin main
+            [ -z "$(tail -c1 todo.md)" ] || echo >> todo.md
+            printf -- '- [ ] %s\n' "$item" >> todo.md
+            git commit -q -am "Add to-do from iPhone: $item"
+            git push -q origin HEAD:main && exit 0
+            git reset -q --hard origin/main
+          done
+          echo "::error::Couldn't push the new to-do"; exit 1
+
+  # Pushes made with the workflow token don't trigger other workflows, so render here.
+  render:
+    needs: add
+    uses: ./.github/workflows/render.yml
