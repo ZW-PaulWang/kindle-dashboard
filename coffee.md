@@ -5,7 +5,7 @@ Leave `Decaf:` empty to show only one bean.
 Each saved bean is a `##` heading followed by `- Key: value` lines.
 
 - Coffee: Montecarlos
-- Decaf: Cafe de Huila
+- Decaf: Cadefihuila
 
 ## Montecarlos
 - Grams: 18.5 g
@@ -14,7 +14,7 @@ Each saved bean is a `##` heading followed by `- Key: value` lines.
 - Ratio: 1:2.2
 - Time: 28-30 s
 
-## Cafe de Huila
+## Cadefihuila
 - Grams: 20 g
 - Grind: 5
 - Roast: Medium
