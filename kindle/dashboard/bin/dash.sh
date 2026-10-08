@@ -87,8 +87,9 @@ refresh() {
     log "Refreshing (battery $(gasgauge-info -c 2>/dev/null))"
     if wait_for_wifi && fetch_image; then
         show_image
+        show_battery
     else
-        [ -f "$IMG" ] && show_image
+        [ -f "$IMG" ] && show_image && show_battery
         show_message "Offline - last update failed $(date '+%H:%M') UTC"
     fi
 }

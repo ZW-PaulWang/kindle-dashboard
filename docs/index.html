@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kindle Dashboard</title>
+<meta name="robots" content="noindex">
+<style>
+  :root {
+    --bg: #f6f5f2; --card: #ffffff; --text: #1d1d1b; --muted: #6b6a66; --line: #e2e0db;
+    --accent: #2f5d50; --accent-text: #ffffff; --danger: #a33a2c; --field: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161615; --card: #20201e; --text: #ecebe7; --muted: #a09e98; --line: #34332f;
+      --accent: #7fb8a4; --accent-text: #10201b; --danger: #e48a7c; --field: #1a1a19;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 20px 16px 120px; }
+  h1 { font-size: 1.5rem; margin: 4px 0 2px; }
+  h2 { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .grow { flex: 1; min-width: 0; }
+  input[type=text], input[type=password] {
+    width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--field); color: var(--text); font: inherit;
+  }
+  input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+  button {
+    font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--card); color: var(--text); cursor: pointer; white-space: nowrap;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+  button.icon { padding: 6px 10px; color: var(--muted); }
+  button.danger { color: var(--danger); }
+  button:disabled { opacity: .5; cursor: default; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  #todo-list li { display: flex; gap: 10px; align-items: center; padding: 4px 0; }
+  #todo-list li.done input[type=text] { color: var(--muted); text-decoration: line-through; }
+  #todo-list input[type=text] { border-color: transparent; background: transparent; padding: 6px 8px; }
+  #todo-list input[type=text]:focus { border-color: var(--line); background: var(--field); }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 560px) { .choices { grid-template-columns: 1fr; } }
+  label.kind { display: block; font-weight: 600; margin-bottom: 6px; }
+  .params { margin: 10px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; }
+  .params dt { color: var(--muted); }
+  .params dd { margin: 0; font-weight: 600; }
+  .note { color: var(--muted); font-size: .9rem; margin: 8px 0 0; }
+  .bean { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--line); }
+  .bean:first-child { border-top: 0; padding-top: 0; }
+  .bean .name { font-weight: 700; }
+  .bean .meta { color: var(--muted); font-size: .9rem; }
+  dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--text); width: min(480px, calc(100vw - 32px)); padding: 16px; }
+  dialog::backdrop { background: rgba(0, 0, 0, .35); }
+  .fields { display: grid; grid-template-columns: 7.5em 1fr auto; gap: 8px; align-items: center; margin: 12px 0; }
+  #preview img { width: 100%; max-width: 420px; display: block; margin: 0 auto; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+  #savebar {
+    position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: var(--card); border-top: 1px solid var(--line); display: none;
+  }
+  #savebar .inner { max-width: 760px; margin: 0 auto; display: flex; gap: 12px; align-items: center; }
+  #status { min-height: 1.4em; }
+  .err { color: var(--danger); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Kindle dashboard</h1>
+  <p class="sub">Edit the to-do list and the coffee shown on the Kindle. Each save updates the image in about a minute; the Kindle shows it at 5 minutes past the hour.</p>
+
+  <section class="card" id="setup" hidden>
+    <h2>Connect to GitHub</h2>
+    <p>This page reads and writes <code>todo.md</code> and <code>coffee.md</code> in your repository. It needs a
+      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a>
+      with access to this repository only and <b>Contents: Read and write</b>. The token stays in this browser.</p>
+    <p><label>Repository (owner/name)<br><input type="text" id="repo" autocomplete="off" spellcheck="false"></label></p>
+    <p><label>Token<br><input type="password" id="token" autocomplete="off" spellcheck="false"></label></p>
+    <button class="primary" id="connect">Connect</button>
+    <p id="setup-msg" class="note"></p>
+  </section>
+
+  <div id="app" hidden>
+    <section class="card">
+      <h2>To-do</h2>
+      <ul id="todo-list"></ul>
+      <form id="todo-add" class="row" style="margin-top:10px">
+        <input type="text" id="todo-new" class="grow" placeholder="Add an item" autocomplete="off">
+        <button type="submit">Add</button>
+      </form>
+      <div class="toolbar"><button id="todo-clear">Remove done items</button></div>
+    </section>
+
+    <section class="card">
+      <h2>Coffee on the dashboard</h2>
+      <div class="choices">
+        <div><label class="kind" for="pick-coffee">Coffee</label><input type="text" id="pick-coffee" list="bean-names" autocomplete="off" placeholder="Bean name"><div id="show-coffee"></div></div>
+        <div><label class="kind" for="pick-decaf">Decaf</label><input type="text" id="pick-decaf" list="bean-names" autocomplete="off" placeholder="Bean name (empty: none)"><div id="show-decaf"></div></div>
+      </div>
+      <datalist id="bean-names"></datalist>
+    </section>
+
+    <section class="card">
+      <h2>Saved beans</h2>
+      <ul id="beans"></ul>
+      <div class="toolbar"><button id="bean-new">Add a bean</button></div>
+    </section>
+
+    <section class="card" id="preview">
+      <h2>Dashboard now</h2>
+      <div id="preview-body" class="note">Loading…</div>
+      <div class="toolbar"><button id="preview-reload">Reload image</button></div>
+    </section>
+
+    <p class="note">Repository: <span id="repo-label"></span> · <a href="#" id="disconnect">Disconnect</a></p>
+  </div>
+</main>
+
+<div id="savebar"><div class="inner">
+  <span id="status" class="grow"></span>
+  <button class="primary" id="save">Save</button>
+</div></div>
+
+<dialog id="bean-dialog">
+  <form method="dialog" id="bean-form">
+    <h2 id="bean-title">Bean</h2>
+    <label>Name<br><input type="text" id="bean-name" autocomplete="off" required></label>
+    <div class="fields" id="bean-fields"></div>
+    <div class="toolbar">
+      <button type="button" id="field-add">Add a field</button>
+      <span class="grow"></span>
+      <button type="button" id="bean-cancel">Cancel</button>
+      <button type="submit" class="primary">Done</button>
+    </div>
+    <p id="bean-msg" class="note err"></p>
+  </form>
+</dialog>
+
+<script>
+"use strict";
+const DEFAULT_REPO = "ZW-PaulWang/kindle-dashboard";
+const DEFAULT_FIELDS = ["Grams", "Grind", "Roast", "Ratio", "Time"];
+const TODO_RE = /^\s*[-*+]\s+\[([ xX])\]\s+(.*\S)\s*$/;
+const META_RE = /^\s*[-*+]\s+([^:]{1,40}?)\s*:\s*(.+?)\s*$/;   // same rule as render.py
+const $ = (id) => document.getElementById(id);
+
+// ---- Settings (kept in this browser only) ----
+const store = {
+  get(k) { try { return localStorage.getItem(k) || ""; } catch { return ""; } },
+  set(k, v) { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} },
+};
+function guessRepo() {
+  // On GitHub Pages the address is https://OWNER.github.io/REPO/
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+  const repo = location.pathname.split("/").filter(Boolean)[0];
+  return m && repo ? `${m[1]}/${repo}` : DEFAULT_REPO;
+}
+const cfg = { repo: store.get("kd-repo") || guessRepo(), token: store.get("kd-token") };
+
+// ---- GitHub contents API ----
+async function api(path, { method = "GET", body, raw } = {}) {
+  const r = await fetch(`https://api.github.com/repos/${cfg.repo}/${path}`, {
+    method, cache: "no-store",
+    headers: {
+      Authorization: `Bearer ${cfg.token}`,
+      Accept: raw ? "application/vnd.github.raw" : "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      ...(body ? { "Content-Type": "application/json" } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!r.ok) {
+    let msg = `${r.status} ${r.statusText}`;
+    try { msg = (await r.json()).message || msg; } catch {}
+    const e = new Error(msg); e.status = r.status; throw e;
+  }
+  return raw ? r.blob() : r.json();
+}
+const b64decode = (s) => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, "")), (c) => c.charCodeAt(0)));
+function b64encode(text) {
+  const bytes = new TextEncoder().encode(text);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+async function loadFile(path) {
+  const j = await api(`contents/${path}`);
+  return { text: b64decode(j.content), sha: j.sha };
+}
+async function saveFile(path, text, sha, message) {
+  const j = await api(`contents/${path}`, { method: "PUT", body: { message, content: b64encode(text), sha } });
+  return j.content.sha;
+}
+
+// ---- todo.md: "- [ ] item" lines; all other lines are kept as they are ----
+function parseTodo(text) {
+  const lines = text.replace(/\n+$/, "").split("\n");
+  const first = lines.findIndex((l) => TODO_RE.test(l));
+  const head = first < 0 ? lines : lines.slice(0, first);
+  const rest = first < 0 ? [] : lines.slice(first);
+  const items = rest.filter((l) => TODO_RE.test(l)).map((l) => { const m = l.match(TODO_RE); return { done: m[1] !== " ", text: m[2] }; });
+  const tail = rest.filter((l) => !TODO_RE.test(l));
+  return { head, items, tail };
+}
+function writeTodo(t) {
+  const head = [...t.head];
+  if (head.length && head[head.length - 1].trim() !== "") head.push("");
+  const items = t.items.filter((i) => i.text.trim()).map((i) => `- [${i.done ? "x" : " "}] ${i.text.trim()}`);
+  return [...head, ...items, ...t.tail].join("\n").replace(/\n+$/, "") + "\n";
+}
+
+// ---- coffee.md: choice lines, then "## Name" + "- Key: value" per bean ----
+const beanKey = (s) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().split(/\s+/).filter(Boolean).join(" ");
+function parseCoffee(text) {
+  const c = { head: [], chosen: { coffee: "", decaf: "" }, beans: [] };
+  let cur = null;
+  for (const line of text.replace(/\n+$/, "").split("\n")) {
+    if (line.startsWith("## ")) { cur = { name: line.slice(3).trim(), meta: [], extra: [] }; c.beans.push(cur); continue; }
+    if (cur) {
+      const m = line.match(META_RE);
+      if (m) cur.meta.push([m[1], m[2]]); else if (line.trim()) cur.extra.push(line);
+      continue;
+    }
+    const m = line.match(/^\s*[-*+]\s+(coffee|decaf)\s*:\s*(.*?)\s*$/i);
+    if (m) c.chosen[m[1].toLowerCase()] = m[2]; else c.head.push(line);
+  }
+  while (c.head.length && !c.head[c.head.length - 1].trim()) c.head.pop();
+  return c;
+}
+function writeCoffee(c) {
+  const out = [...c.head, "", `- Coffee: ${c.chosen.coffee}`.trimEnd(), `- Decaf: ${c.chosen.decaf}`.trimEnd()];
+  for (const b of c.beans) {
+    out.push("", `## ${b.name}`, ...b.meta.map(([k, v]) => `- ${k}: ${v}`), ...b.extra);
+  }
+  return out.join("\n") + "\n";
+}
+const findBean = (name) => state.coffee.beans.find((b) => beanKey(b.name) === beanKey(name));
+
+// ---- State ----
+const state = { todo: null, coffee: null, sha: {}, dirty: { todo: false, coffee: false }, saving: false };
+function markDirty(which) { state.dirty[which] = true; showSavebar(); }
+function showSavebar(msg, isErr) {
+  const dirty = state.dirty.todo || state.dirty.coffee;
+  $("savebar").style.display = dirty || msg ? "block" : "none";
+  $("save").hidden = !dirty;
+  $("save").disabled = state.saving;
+  $("status").textContent = msg || (dirty ? "Unsaved changes" : "");
+  $("status").className = "grow" + (isErr ? " err" : "");
+}
+window.addEventListener("beforeunload", (e) => { if (state.dirty.todo || state.dirty.coffee) e.preventDefault(); });
+
+// ---- To-do UI ----
+function renderTodo() {
+  const ul = $("todo-list");
+  ul.replaceChildren();
+  state.todo.items.forEach((item, i) => {
+    const li = document.createElement("li");
+    li.className = item.done ? "done" : "";
+    const cb = Object.assign(document.createElement("input"), { type: "checkbox", checked: item.done, title: "Done" });
+    cb.onchange = () => { item.done = cb.checked; li.className = item.done ? "done" : ""; markDirty("todo"); };
+    const txt = Object.assign(document.createElement("input"), { type: "text", value: item.text, className: "grow" });
+    txt.oninput = () => { item.text = txt.value; markDirty("todo"); };
+    const del = Object.assign(document.createElement("button"), { textContent: "✕", className: "icon", title: "Delete" });
+    del.onclick = () => { state.todo.items.splice(i, 1); renderTodo(); markDirty("todo"); };
+    li.append(cb, txt, del);
+    ul.append(li);
+  });
+  if (!state.todo.items.length) ul.append(Object.assign(document.createElement("li"), { className: "note", textContent: "Nothing on the list." }));
+}
+$("todo-add").onsubmit = (e) => {
+  e.preventDefault();
+  const v = $("todo-new").value.trim();
+  if (!v) return;
+  state.todo.items.push({ done: false, text: v });
+  $("todo-new").value = "";
+  renderTodo(); markDirty("todo");
+};
+$("todo-clear").onclick = () => {
+  const n = state.todo.items.length;
+  state.todo.items = state.todo.items.filter((i) => !i.done);
+  if (state.todo.items.length !== n) { renderTodo(); markDirty("todo"); }
+};
+
+// ---- Coffee UI ----
+function paramsList(meta) {
+  const dl = document.createElement("dl");
+  dl.className = "params";
+  for (const [k, v] of meta) dl.append(Object.assign(document.createElement("dt"), { textContent: k }), Object.assign(document.createElement("dd"), { textContent: v }));
+  return dl;
+}
+function renderChoice(kind) {
+  const input = $(`pick-${kind}`), box = $(`show-${kind}`);
+  const name = input.value.trim();
+  box.replaceChildren();
+  if (!name) { if (kind === "decaf") box.append(Object.assign(document.createElement("p"), { className: "note", textContent: "No decaf shown." })); return; }
+  const bean = findBean(name);
+  if (bean) { box.append(paramsList(bean.meta)); return; }
+  const p = Object.assign(document.createElement("p"), { className: "note", textContent: "Not saved yet. " });
+  const add = Object.assign(document.createElement("button"), { textContent: "Save its settings" });
+  add.onclick = () => openBean(null, name);
+  box.append(p, add);
+}
+function renderCoffee() {
+  $("pick-coffee").value = state.coffee.chosen.coffee;
+  $("pick-decaf").value = state.coffee.chosen.decaf;
+  renderChoice("coffee"); renderChoice("decaf");
+  $("bean-names").replaceChildren(...state.coffee.beans.map((b) => Object.assign(document.createElement("option"), { value: b.name })));
+  const ul = $("beans");
+  ul.replaceChildren();
+  state.coffee.beans.forEach((b) => {
+    const li = document.createElement("li");
+    li.className = "bean";
+    const info = document.createElement("div");
+    info.className = "grow";
+    info.append(Object.assign(document.createElement("div"), { className: "name", textContent: b.name }),
+      Object.assign(document.createElement("div"), { className: "meta", textContent: b.meta.map(([k, v]) => `${k} ${v}`).join(" · ") }));
+    const edit = Object.assign(document.createElement("button"), { textContent: "Edit" });
+    edit.onclick = () => openBean(b);
+    const del = Object.assign(document.createElement("button"), { textContent: "Delete", className: "danger" });
+    del.onclick = () => {
+      if (!confirm(`Delete ${b.name}?`)) return;
+      state.coffee.beans.splice(state.coffee.beans.indexOf(b), 1);
+      renderCoffee(); markDirty("coffee");
+    };
+    li.append(info, edit, del);
+    ul.append(li);
+  });
+  if (!state.coffee.beans.length) ul.append(Object.assign(document.createElement("li"), { className: "note", textContent: "No saved beans." }));
+}
+for (const kind of ["coffee", "decaf"]) {
+  const input = $(`pick-${kind}`);
+  input.oninput = () => { state.coffee.chosen[kind] = input.value.trim(); renderChoice(kind); markDirty("coffee"); };
+  // Use the saved spelling once the name matches a saved bean ("cafe de huila" -> "Cafe de Huila").
+  input.onchange = () => { const b = findBean(input.value); if (b && b.name !== input.value) { input.value = b.name; state.coffee.chosen[kind] = b.name; } };
+}
+
+// ---- Bean editor ----
+let editing = null;
+function fieldRow(k = "", v = "") {
+  const key = Object.assign(document.createElement("input"), { type: "text", value: k, placeholder: "Field" });
+  const val = Object.assign(document.createElement("input"), { type: "text", value: v, placeholder: "Value" });
+  const del = Object.assign(document.createElement("button"), { type: "button", textContent: "✕", className: "icon", title: "Remove field" });
+  del.onclick = () => { key.remove(); val.remove(); del.remove(); };
+  $("bean-fields").append(key, val, del);
+}
+function openBean(bean, name = "") {
+  editing = bean;
+  $("bean-title").textContent = bean ? "Edit bean" : "New bean";
+  $("bean-name").value = bean ? bean.name : name;
+  $("bean-fields").replaceChildren();
+  const meta = bean ? bean.meta : DEFAULT_FIELDS.map((k) => [k, ""]);
+  meta.forEach(([k, v]) => fieldRow(k, v));
+  $("bean-msg").textContent = "";
+  $("bean-dialog").showModal();
+}
+$("bean-new").onclick = () => openBean(null);
+$("field-add").onclick = () => fieldRow();
+$("bean-cancel").onclick = () => $("bean-dialog").close();
+$("bean-form").onsubmit = (e) => {
+  const name = $("bean-name").value.trim().replace(/^#+\s*/, "");
+  const inputs = [...$("bean-fields").querySelectorAll("input")];
+  const meta = [];
+  for (let i = 0; i < inputs.length; i += 2) {
+    const k = inputs[i].value.replace(/:/g, "").trim().slice(0, 40), v = inputs[i + 1].value.trim();
+    if (k && v) meta.push([k, v]);
+  }
+  const clash = findBean(name);
+  if (!name || (clash && clash !== editing)) {
+    e.preventDefault();
+    $("bean-msg").textContent = name ? `A bean called ${clash.name} is already saved.` : "Give the bean a name.";
+    return;
+  }
+  if (editing) {
+    // Keep the dashboard choice pointing at this bean after a rename.
+    for (const kind of ["coffee", "decaf"]) if (beanKey(state.coffee.chosen[kind]) === beanKey(editing.name)) state.coffee.chosen[kind] = name;
+    Object.assign(editing, { name, meta });
+  } else {
+    state.coffee.beans.push({ name, meta, extra: [] });
+  }
+  renderCoffee(); markDirty("coffee");
+};
+
+// ---- Preview of the published image ----
+let previewUrl = null;
+async function loadPreview() {
+  const body = $("preview-body");
+  body.className = "note"; body.textContent = "Loading…";
+  try {
+    const blob = await api("contents/dashboard.png?ref=output", { raw: true });
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = URL.createObjectURL(blob);
+    body.className = ""; body.replaceChildren(Object.assign(document.createElement("img"), { src: previewUrl, alt: "Current dashboard image" }));
+  } catch (e) {
+    body.className = "note err"; body.textContent = `Could not load the image (${e.message}).`;
+  }
+}
+$("preview-reload").onclick = loadPreview;
+
+// ---- Load and save ----
+async function loadAll() {
+  const [todo, coffee] = await Promise.all([loadFile("todo.md"), loadFile("coffee.md")]);
+  state.todo = parseTodo(todo.text); state.sha.todo = todo.sha;
+  state.coffee = parseCoffee(coffee.text); state.sha.coffee = coffee.sha;
+  state.dirty = { todo: false, coffee: false };
+  renderTodo(); renderCoffee(); showSavebar();
+}
+$("save").onclick = async () => {
+  state.saving = true; showSavebar("Saving…");
+  try {
+    if (state.dirty.todo) {
+      state.sha.todo = await saveFile("todo.md", writeTodo(state.todo), state.sha.todo, "Update to-do list from the web page");
+      state.dirty.todo = false;
+    }
+    if (state.dirty.coffee) {
+      state.sha.coffee = await saveFile("coffee.md", writeCoffee(state.coffee), state.sha.coffee, "Update coffee from the web page");
+      state.dirty.coffee = false;
+    }
+    state.saving = false;
+    showSavebar("Saved. The dashboard image updates in about a minute.");
+    setTimeout(() => { if (!state.dirty.todo && !state.dirty.coffee) showSavebar(); }, 6000);
+  } catch (e) {
+    state.saving = false;
+    const msg = e.status === 409 || /does not match/i.test(e.message)
+      ? "The file changed on GitHub since this page loaded. Reload the page and make the change again."
+      : `Save failed: ${e.message}`;
+    showSavebar(msg, true);
+  }
+};
+
+async function start() {
+  $("repo").value = cfg.repo;
+  if (!cfg.token) { $("setup").hidden = false; return; }
+  try {
+    await loadAll();
+    $("setup").hidden = true; $("app").hidden = false;
+    $("repo-label").textContent = cfg.repo;
+    loadPreview();
+  } catch (e) {
+    $("setup").hidden = false; $("app").hidden = true;
+    $("setup-msg").className = "note err";
+    $("setup-msg").textContent = e.status === 401 ? "GitHub did not accept the token." :
+      e.status === 404 ? "Repository or file not found. Check the name and that the token can read this repository." : `Could not load: ${e.message}`;
+  }
+}
+$("connect").onclick = () => {
+  cfg.repo = $("repo").value.trim(); cfg.token = $("token").value.trim();
+  store.set("kd-repo", cfg.repo); store.set("kd-token", cfg.token);
+  $("token").value = ""; $("setup-msg").textContent = "";
+  start();
+};
+$("disconnect").onclick = (e) => {
+  e.preventDefault();
+  store.set("kd-token", ""); cfg.token = "";
+  state.dirty = { todo: false, coffee: false };
+  $("app").hidden = true; showSavebar();
+  start();
+};
+start();
+</script>
+</body>
+</html>

@@ -82,3 +82,23 @@ show_notice() {
         eips 4 21 "$2"
     fi
 }
+
+# Battery charge in percent (digits only), or nothing if unknown.
+battery_level() {
+    b="$(lipc-get-prop com.lab126.powerd battLevel 2>/dev/null | tr -dc 0-9)"
+    [ -z "$b" ] && b="$(gasgauge-info -c 2>/dev/null | tr -dc 0-9)"
+    echo "$b"
+}
+
+# Write the battery level in the middle of the footer, which the renderer leaves empty.
+# The image is drawn on GitHub, so only the Kindle itself knows this number.
+show_battery() {
+    b="$(battery_level)"
+    [ -z "$b" ] && return 0
+    msg="Battery $b%"
+    [ "$b" -lt 15 ] && msg="$msg - charge soon"
+    fb="$(find_fbink)" || return 0
+    # px=30, top=1561: same size and baseline as the footer text in render.py.
+    "$fb" -q -m -t regular="$DIR/fonts/IBMPlexSans-Regular.ttf",px=30,top=1561 "$msg" 2>/dev/null \
+        || "$fb" -q -m -y -1 "$msg"
+}

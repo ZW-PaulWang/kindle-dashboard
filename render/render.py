@@ -16,6 +16,7 @@ import json
 import math
 import re
 import sys
+import unicodedata
 import urllib.request
 from datetime import datetime
 from pathlib import Path
@@ -279,13 +280,18 @@ def load_todos(path: Path) -> tuple[list[str], list[str]]:
 META_RE = re.compile(r"^\s*[-*+]\s+([^:]{1,40}?)\s*:\s*(.+?)\s*$")
 
 
-def load_beans(path: Path) -> list[dict]:
+def load_beans(path: Path) -> tuple[list[dict], dict[str, str]]:
+    """Saved beans (`## Name` + `- Key: value`) and the choice of beans to show.
+
+    The choice is the `- Coffee: name` and `- Decaf: name` lines above the first bean.
+    """
     beans: list[dict] = []
+    chosen: dict[str, str] = {}
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except Exception as e:  # noqa: BLE001
         warn(f"could not read {path}: {e}")
-        return beans
+        return beans, chosen
     cur = None
     for line in lines:
         if line.startswith("## "):
@@ -295,12 +301,39 @@ def load_beans(path: Path) -> list[dict]:
         if line.startswith("#"):
             cur = None if not line.startswith("###") else cur
             continue
-        if cur is None:
-            continue
         m = META_RE.match(line)
-        if m:
+        if not m:
+            continue
+        if cur is not None:
             cur["meta"].append((clean_md(m.group(1)), clean_md(m.group(2))))
-    return [b for b in beans if b["name"]]
+        elif not beans and m.group(1).strip().lower() in ("coffee", "decaf"):
+            chosen[m.group(1).strip().lower()] = clean_md(m.group(2))
+    return [b for b in beans if b["name"]], chosen
+
+
+def bean_key(name: str) -> str:
+    """Match names loosely: "Café  de Huila" and "cafe de huila" are the same bean."""
+    s = unicodedata.normalize("NFKD", name)
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return " ".join(s.lower().split())
+
+
+def pick_beans(beans: list[dict], chosen: dict[str, str], now: datetime) -> list[dict]:
+    """[regular] or [regular, decaf]. A chosen name that is not saved shows with no settings."""
+    by_key = {bean_key(b["name"]): b for b in beans}
+
+    def find(name):
+        return by_key.get(bean_key(name), {"name": name, "meta": [], "missing": True})
+
+    decaf = find(chosen["decaf"]) if chosen.get("decaf") else None
+    if chosen.get("coffee"):
+        regular = find(chosen["coffee"])
+    else:  # no choice: rotate daily through the saved beans
+        pool = [b for b in beans if b is not decaf] or beans
+        if not pool:
+            return [decaf] if decaf else []
+        regular = pool[now.timetuple().tm_yday % len(pool)]
+    return [regular, decaf] if decaf else [regular]
 
 
 # --------------------------------------------------------------------------
@@ -560,13 +593,16 @@ def draw_todo(d, x0, x1, top, bottom, open_items, done_items):
 # --------------------------------------------------------------------------
 # Coffee section
 # --------------------------------------------------------------------------
-def draw_coffee(img, d, x0, x1, top, bottom, beans, now):
+def draw_coffee(img, d, x0, x1, top, bottom, shown):
+    if len(shown) == 2:
+        draw_coffee_pair(img, d, x0, x1, top, bottom, shown)
+        return
     section_label(d, x0, top + 30, "Coffee of the day")
-    if not beans:
+    if not shown:
         d.text((x0, top + 114), "No beans yet.", font=font("italic", 38), fill=DARK, anchor="ls")
         d.text((x0, top + 164), "Add one to coffee.md", font=font("regular", 32), fill=DARK, anchor="ls")
         return
-    b = beans[now.timetuple().tm_yday % len(beans)]
+    b = shown[0]
     width = x1 - x0
     y = top + 76
 
@@ -586,6 +622,8 @@ def draw_coffee(img, d, x0, x1, top, bottom, beans, now):
     # Key / value rows (Grams, Grind, Roast, ...): gray label, large bold value.
     # Use the roomiest layout where every row fits; the last one drops rows that don't.
     if not b["meta"]:
+        if b.get("missing"):
+            d.text((x0, y + 40), "No saved settings", font=font("italic", 34), fill=DARK, anchor="ls")
         return
     layouts = [dict(vsize=46, row_gap=26, max_lines=2), dict(vsize=42, row_gap=14, max_lines=2),
                dict(vsize=40, row_gap=10, max_lines=1)]
@@ -593,6 +631,61 @@ def draw_coffee(img, d, x0, x1, top, bottom, beans, now):
         if _bean_rows(None, b["meta"], x0, width, y, bottom, mx, my, **cfg) or n == len(layouts) - 1:
             _bean_rows(d, b["meta"], x0, width, y, bottom, mx, my, **cfg)
             return
+
+
+def fit_font(style: str, s: str, max_w: float, size: int, min_size: int) -> ImageFont.FreeTypeFont:
+    """Largest font from size down to min_size in which s fits max_w (min_size if none does)."""
+    while size > min_size and text_w(s, font(style, size)) > max_w:
+        size -= 2
+    return font(style, size)
+
+
+def draw_coffee_pair(img, d, x0, x1, top, bottom, shown):
+    """Regular and decaf side by side: one column per bean, one row per setting."""
+    section_label(d, x0, top + 30, "Coffee")
+    keys: list[str] = []
+    for b in shown:
+        keys += [k for k, _ in b["meta"] if k.lower() not in (x.lower() for x in keys)]
+    lf = font("regular", 30)
+    label_w = max([text_w(k, lf) for k in keys] + [0]) + 22
+    colw = (x1 - x0 - label_w - 24) / 2
+    cols = [x0 + label_w, x0 + label_w + colw + 24]
+
+    # Column heads: kind (small caps) then the bean name, shrunk or wrapped to fit.
+    y = top + 82
+    for cx, kind in zip(cols, ("Regular", "Decaf")):
+        section_label(d, cx, y + 26, kind)
+    y += 44
+    # One size for both names: the largest at which every word fits its column.
+    words = [w for b in shown for w in b["name"].split()] or [""]
+    nf = fit_font("bold", max(words, key=lambda w: text_w(w, font("bold", 40))), colw, 40, 28)
+    lh = nf.size + 8
+    name_lines = [wrap(b["name"], nf, colw, max_lines=2) for b in shown]
+    for cx, lines in zip(cols, name_lines):
+        for i, ln in enumerate(lines):
+            d.text((cx, y + nf.size + i * lh), ln, font=nf, fill=BLACK, anchor="ls")
+    y += max(len(lines) for lines in name_lines) * lh + 18
+    hrule(d, y, x0, x1)
+    y += 14
+
+    if not keys:
+        d.text((x0, y + 40), "No saved settings", font=font("italic", 34), fill=DARK, anchor="ls")
+        return
+    # Rows: gray label, then each bean's value (a dash if it has none).
+    row_h = min(62, (bottom - y) // len(keys))
+    for k in keys:
+        d.text((x0, y + row_h - 16), ellipsize(k, lf, label_w - 12), font=lf, fill=DARK, anchor="ls")
+        for cx, b in zip(cols, shown):
+            v = next((v for kk, v in b["meta"] if kk.lower() == k.lower()), "\u2013")
+            vf = fit_font("bold", v, colw, 42, 30)
+            d.text((cx, y + row_h - 16), ellipsize(v, vf, colw), font=vf, fill=BLACK, anchor="ls")
+        y += row_h
+
+    # Cartoon cup in the bottom-right corner, if the rows left room for it.
+    room = bottom - y - 8
+    if room >= 110:
+        mascot = doodles.coffee_cup(min(170, room))
+        img.paste(mascot, (int(x1 - mascot.width), int(bottom - mascot.height)))
 
 
 def _bean_rows(d, meta, x0, width, y, bottom, mx, my, vsize, row_gap, max_lines) -> bool:
@@ -650,7 +743,7 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     except Exception as e:  # noqa: BLE001  never let one section kill the image
         warn(f"to-do section failed ({e.__class__.__name__}: {e})")
     try:
-        draw_coffee(img, d, rx0, rx1, low_top, low_bottom, load_beans(coffee_path), now)
+        draw_coffee(img, d, rx0, rx1, low_top, low_bottom, pick_beans(*load_beans(coffee_path), now))
     except Exception as e:  # noqa: BLE001
         warn(f"coffee section failed ({e.__class__.__name__}: {e})")
 
