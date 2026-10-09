@@ -8,14 +8,14 @@ Each saved bean is a `##` heading followed by `- Key: value` lines.
 - Decaf: Cadefihuila
 
 ## Montecarlos
-- Grams: 19.0 g
+- Grams: 19.5 g
 - Grind: 6
 - Roast: Medium
 - Ratio: 1:2.0
 - Time: 28-30 s
 
 ## Cadefihuila
-- Grams: 20.0 g
+- Grams: 19.0 g
 - Grind: 5
 - Roast: Medium
 - Ratio: 1:1.8
