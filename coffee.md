@@ -22,7 +22,7 @@ Each saved bean is a `##` heading followed by `- Key: value` lines.
 - Time: 32-35 s
 
 ## Hair Bender
-- Grams: 20.0
+- Grams: 20.0 g
 - Grind: 6
 - Roast: Medium
 - Ratio: 1:2.0
