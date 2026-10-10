@@ -4,7 +4,7 @@ The dashboard shows the beans named in the two lines below. Change a name to swi
 Leave `Decaf:` empty to show only one bean.
 Each saved bean is a `##` heading followed by `- Key: value` lines.
 
-- Coffee: Montecarlos
+- Coffee: Dota
 - Decaf: Cadefihuila
 
 ## Montecarlos
@@ -25,5 +25,12 @@ Each saved bean is a `##` heading followed by `- Key: value` lines.
 - Grams: 20.0 g
 - Grind: 6
 - Roast: Medium
+- Ratio: 1:2.0
+- Time: 28-32s
+
+## Dota
+- Grams: 18.5 g
+- Grind: 7
+- Roast: Dark
 - Ratio: 1:2.0
 - Time: 28-32s
