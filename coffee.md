@@ -4,7 +4,7 @@ The dashboard shows the beans named in the two lines below. Change a name to swi
 Leave `Decaf:` empty to show only one bean.
 Each saved bean is a `##` heading followed by `- Key: value` lines.
 
-- Coffee: Montecarlos
+- Coffee: Dota
 - Decaf: Cadefihuila
 
 ## Montecarlos
