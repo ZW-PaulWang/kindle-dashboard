@@ -41,3 +41,10 @@ Each saved bean is a `##` heading followed by `- Key: value` lines.
 - Roast: Dark
 - Ratio: 1:1.3
 - Time: 30-35 s
+
+## Partners - Decaf
+- Grams: 19.0 g
+- Grind: 4
+- Roast: Medium
+- Ratio: 1:2.0
+- Time: 28-32 s
