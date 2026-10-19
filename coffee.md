@@ -5,7 +5,7 @@ Leave `Decaf:` empty to show only one bean.
 Each saved bean is a `##` heading followed by `- Key: value` lines.
 
 - Coffee: Hayes Valley
-- Decaf: Cadefihuila
+- Decaf: Partners - Decaf
 
 ## Montecarlos
 - Grams: 19.5 g
