@@ -34,3 +34,10 @@ Each saved bean is a `##` heading followed by `- Key: value` lines.
 - Roast: Dark
 - Ratio: 1:2.0
 - Time: 28-32s
+
+## Hayes Valley
+- Grams: 18.5 g
+- Grind: 6
+- Roast: Dark
+- Ratio: 1:1.3
+- Time: 30-35 s
