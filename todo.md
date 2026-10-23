@@ -3,3 +3,4 @@
 Edit this file on GitHub (or tick the boxes) — the Kindle picks up changes within the hour.
 
 - [ ] Happy Birthday!
+- [ ] Remind Anissa medicine
