@@ -55,3 +55,10 @@ Each saved bean is a `##` heading followed by `- Key: value` lines.
 - Roast: Medium
 - Ratio: 1:2.0
 - Time: 28-33 s
+
+## Partners - Brooklyn
+- Grams: 18.5 g
+- Grind: 6
+- Roast: Medium
+- Ratio: 1:2
+- Time: 30-35 s
