@@ -2,4 +2,4 @@
 
 Edit this file on GitHub (or tick the boxes) — the Kindle picks up changes within the hour.
 
-- [ ] Prediction Market day 4
+- [ ] Happy Birthday!
