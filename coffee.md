@@ -4,7 +4,7 @@ The dashboard shows the beans named in the two lines below. Change a name to swi
 Leave `Decaf:` empty to show only one bean.
 Each saved bean is a `##` heading followed by `- Key: value` lines.
 
-- Coffee: Partners - Brooklyn
+- Coffee: Verve Sermon
 - Decaf: Devocion - Decaf
 
 ## Montecarlos
@@ -62,3 +62,10 @@ Each saved bean is a `##` heading followed by `- Key: value` lines.
 - Roast: Medium
 - Ratio: 1:2
 - Time: 30-35 s
+
+## Verve Sermon
+- Grams: 19.0 g
+- Grind: 4
+- Roast: Light - Medium
+- Ratio: 1:2
+- Time: 30 s
