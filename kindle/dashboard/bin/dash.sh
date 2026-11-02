@@ -3,9 +3,9 @@
 # Double-tap the screen to exit back to the normal Kindle UI.
 . /mnt/us/extensions/dashboard/bin/common.sh
 
-echo $$ >"$DIR/dashboard.pid"
+echo $$ >"$PIDFILE"
 log "Starting dashboard (pid $$)"
-load_config || exit 1
+load_config || { rm -f "$PIDFILE"; exit 1; }
 
 SLEEP_PID=""
 EXITING=""
@@ -16,7 +16,7 @@ restore_ui() {
     log "Exiting dashboard ($(cat /tmp/dashboard.input 2>/dev/null || echo signal)), restarting the Kindle UI"
     [ -n "$SLEEP_PID" ] && kill "$SLEEP_PID" 2>/dev/null
     pkill -f "doubletap.lua" 2>/dev/null
-    rm -f "$DIR/dashboard.pid" /tmp/dashboard.input
+    rm -f "$PIDFILE" /tmp/dashboard.input
     lipc-set-prop com.lab126.powerd preventScreenSaver 0 2>/dev/null
     # The UI takes a while to come back; say so right away so the tap clearly registered.
     show_notice "Leaving dashboard..." "The Kindle home screen will appear in about 30 seconds."
@@ -147,7 +147,7 @@ night() {
         [ $left -gt 120 ] || break
         t0=$(date +%s)
         if ! rtc_suspend "$left"; then
-            log "Deep sleep isn't available; idling with Wi-Fi off instead"
+            log "Deep sleep refused (usually Wi-Fi still shutting down); idling with Wi-Fi off instead"
             break
         fi
         slept=$(( $(date +%s) - t0 ))
@@ -175,6 +175,7 @@ refresh() {
     [ -f "$IMG" ] && show_image
     show_battery
     show_stale_if_old
+    sync
 }
 
 in_night || refresh

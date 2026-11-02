@@ -2,6 +2,7 @@
 # Shared helpers for the dashboard scripts.
 DIR="/mnt/us/extensions/dashboard"
 IMG="$DIR/dashboard.png"
+PIDFILE="/tmp/dashboard.pid"   # tmpfs: a reboot clears it, so a crash never leaves a stale one
 
 log() { echo "$(date '+%Y-%m-%d %H:%M:%S') $*"; }
 
@@ -15,7 +16,7 @@ load_config() {
     REFRESH_MINUTE="${REFRESH_MINUTE:-5}"
     NIGHT_START="${NIGHT_START:-0}"      # the dashboard sleeps from NIGHT_START:00 ...
     NIGHT_END="${NIGHT_END:-6}"          # ... to NIGHT_END:00 (local time)
-    NIGHT_SUSPEND="${NIGHT_SUSPEND:-1}"  # 1: try a real deep sleep at night; 0: just idle with Wi-Fi off
+    NIGHT_SUSPEND="${NIGHT_SUSPEND:-0}"  # 0: idle with Wi-Fi off at night (default); 1: also try a real deep sleep
     COMMUTE_START="${COMMUTE_START:-7}"      # weekday mornings from COMMUTE_START:00 ...
     COMMUTE_END="${COMMUTE_END:-10}"         # ... to COMMUTE_END:00, refresh every COMMUTE_EVERY minutes
     COMMUTE_EVERY="${COMMUTE_EVERY:-10}"

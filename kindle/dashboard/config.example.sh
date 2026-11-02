@@ -12,8 +12,9 @@ REFRESH_MINUTE=5
 # Night sleep (local time): the dashboard sleeps from NIGHT_START:00 to NIGHT_END:00.
 NIGHT_START=0
 NIGHT_END=6
-# 1: try a real deep sleep at night (best for battery); 0: just idle with Wi-Fi off.
-NIGHT_SUSPEND=1
+# 0: idle with Wi-Fi off at night (default; deep sleep saved no battery and may have caused a crash).
+# 1: also try a real deep sleep.
+NIGHT_SUSPEND=0
 # Bus times: refresh every COMMUTE_EVERY minutes from COMMUTE_START to COMMUTE_END on
 # Monday..COMMUTE_LAST_DAY (5 = weekdays, 7 = every day).
 COMMUTE_START=7
