@@ -9,6 +9,7 @@ Date: 2026-11-02
 - Box Lunch at Law School
 
 ## Dinner
-- Golden Shrimp Tofu: with green peas, corn, rice
-- Shanghai Bak Choi: with mushrooms
+- Golden Shrimp Tofu: with green peas, sweet corn
+- Green beans: with garlic, sausage
+- Scrambled Eggs: with scallions
 - Lady M Matcha Cake
