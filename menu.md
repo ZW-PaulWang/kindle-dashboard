@@ -2,13 +2,13 @@
 Date: 2026-11-02
 
 ## Breakfast
-- Greek yogurt: honey, walnuts
-- Flat white
+- Bread
+- Americano
 
 ## Lunch
-- Chicken caesar salad
-- Sparkling water: lemon
+- Box Lunch at Law School
 
 ## Dinner
-- Salmon: miso glaze, rice, broccoli
-- Dark chocolate: sea salt
+- Golden Shrimp Tofu: green peas, corn, rice
+- Shanghai Bak Choi: mushrooms
+- Lady M Matcha Cake
