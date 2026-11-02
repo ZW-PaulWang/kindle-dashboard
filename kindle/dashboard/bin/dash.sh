@@ -66,12 +66,19 @@ watch_input() {
     [ -z "$found" ] && log "WARNING: no touchscreen found, double-tap exit disabled"
 }
 
+wifi_state() { lipc-get-prop com.lab126.wifid cmState 2>/dev/null || echo unknown; }
+
 wait_for_wifi() {
     i=0
     while [ $i -lt 60 ]; do
-        ping -c 1 -W 2 api.github.com >/dev/null 2>&1 && return 0
+        if ping -c 1 -W 2 api.github.com >/dev/null 2>&1; then
+            [ $i -gt 0 ] && log "Wi-Fi connected after about $((i * 4))s"
+            return 0
+        fi
+        [ $i -eq 0 ] && { log "Waiting for Wi-Fi (state: $(wifi_state))"; sync; }
         i=$((i + 1)); sleep 2
     done
+    log "No Wi-Fi after 4 minutes (state: $(wifi_state)). Is Wi-Fi on and Airplane Mode off?"
     return 1
 }
 
@@ -178,7 +185,17 @@ refresh() {
     sync
 }
 
-in_night || refresh
+# Show the last dashboard straight away, so the screen is never blank while Wi-Fi connects.
+if ! in_night; then
+    if [ -f "$IMG" ]; then
+        show_image
+        show_battery
+        show_stale_if_old
+    else
+        show_notice "Starting dashboard..." "Connecting to Wi-Fi and downloading the first image."
+    fi
+    refresh
+fi
 sleep 2          # let the tap that launched us settle before watching for the next one
 watch_input
 BATTERY_EVERY=600   # redraw the battery indicator every 10 minutes between refreshes
