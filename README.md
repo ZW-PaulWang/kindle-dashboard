@@ -72,7 +72,7 @@ python render/render.py --out out/dashboard.png --weather-json render/sample_wea
 
 1. Copy `kindle/dashboard/` to `extensions/dashboard/` on the Kindle.
 2. Copy `config.example.sh` to `config.sh` and set `REPO` and `GITHUB_TOKEN`. Use a fine-grained token for this repo only, with **Contents: Read-only** and **Actions: Read and write** (the Kindle asks GitHub for fresh renders and sends its log that way).
-3. In KUAL, run **Dashboard → Test download**, then **Start dashboard**. Logs are written to `extensions/dashboard/dashboard.log`.
+3. In KUAL, run **Dashboard → Self-check** (no Wi-Fi needed: it checks the tools the dashboard and its updates use), **Test download**, then **Start dashboard**. Logs are written to `extensions/dashboard/dashboard.log`.
 
 That is the only time the Kindle needs a USB cable.
 
