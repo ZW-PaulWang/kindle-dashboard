@@ -71,10 +71,38 @@ python render/render.py --out out/dashboard.png --weather-json render/sample_wea
 ## Kindle setup
 
 1. Copy `kindle/dashboard/` to `extensions/dashboard/` on the Kindle.
-2. Copy `config.example.sh` to `config.sh` and set `REPO` and `GITHUB_TOKEN`. Use a fine-grained token for this repo only, with Contents set to read-only.
+2. Copy `config.example.sh` to `config.sh` and set `REPO` and `GITHUB_TOKEN`. Use a fine-grained token for this repo only, with **Contents: Read-only** and **Actions: Read and write** (the Kindle asks GitHub for fresh renders and sends its log that way).
 3. In KUAL, run **Dashboard → Test download**, then **Start dashboard**. Logs are written to `extensions/dashboard/dashboard.log`.
 
-Changes to `kindle/dashboard/` (for example the battery level) reach the Kindle only when you copy the folder again over USB. Keep your `config.sh`. The image itself always comes from GitHub. When updating from a version without the menu page, delete the old `bin/doubletap.lua`, since `bin/gestures.lua` replaces it.
+That is the only time the Kindle needs a USB cable.
+
+## Over-the-air updates
+
+Every render also publishes `kindle.tar` (the `kindle/dashboard/` folder) and `kindle.version` (the git tree hash of that folder) to the `output` branch. A push that changes `kindle/dashboard/` triggers a render, so a new version is published within a minute or two.
+
+At each refresh the Kindle (`bin/update.sh`) compares `kindle.version` with its `VERSION` file. When they differ, it:
+
+1. downloads and unpacks the bundle in `/tmp`;
+2. refuses it if a required file is missing, a script has a shell syntax error, `gestures.lua` doesn't load, or the version doesn't match;
+3. copies each changed file over the old one, keeping the old copies in `.backup/`, and moves away scripts in `bin/` that the new version no longer has;
+4. restarts the dashboard with the new scripts. The Kindle UI stays off and the screen keeps its image.
+
+A watchdog started from the old scripts checks that the new `dash.sh` starts within 150 seconds. If it doesn't, the watchdog stops it, puts the backup back and starts the old version again. The failed version is recorded in `.update-bad` and skipped until a newer one is published. **Start dashboard** in KUAL also installs a published update before starting, so a dashboard that broke after an update can be fixed by pushing a fix and tapping Start.
+
+Updates never touch `config.sh`, the log or the downloaded images. Set `UPDATES=0` in `config.sh` to turn them off on one Kindle.
+
+## Settings
+
+`kindle/dashboard/settings.sh` holds the refresh minute, night hours, commute window and the update and log switches. It reaches the Kindle with each update, so change it on GitHub. `config.sh` on the Kindle holds only the repo and token. It is read after `settings.sh`, so a setting added there overrides the repo's value on that Kindle.
+
+## Remote logs
+
+With each render request the Kindle sends the new lines of `dashboard.log` (at most the newest 30 KB) and a status line (version, battery, page, uptime, free space, Wi-Fi). The render workflow appends them to the `logs` branch before it renders, so this costs no extra Actions run:
+
+- `kindle.log`: the last 5000 lines.
+- `status.txt`: the latest status line, with the time it arrived.
+
+The log arrives with the next refresh, so it is up to an hour behind (10 minutes on weekday mornings). Read it with `gh api "repos/OWNER/kindle-dashboard/contents/kindle.log?ref=logs" -H "Accept: application/vnd.github.raw"`, or on GitHub by switching to the `logs` branch. Once the log on the Kindle passes 400 KB after an upload, it is trimmed to its last 1500 lines. Set `LOG_UPLOAD=0` to stop sending it.
 
 ## Adding to-dos from an iPhone
 
@@ -88,9 +116,9 @@ The token needs **Actions: Read and write** on this repository.
 
 ## Night sleep
 
-From midnight to 6 AM the Kindle shows `night.png`, turns Wi-Fi off and tries to suspend until morning (set `NIGHT_SUSPEND=0` in `config.sh` to only idle). Change the hours with `NIGHT_START` and `NIGHT_END`.
+From midnight to 6 AM the Kindle shows `night.png`, turns Wi-Fi off and idles until morning, then starts again on the dashboard page. `NIGHT_SUSPEND=1` also tries a real deep sleep; it saved no battery and may have caused a crash, so it is off. Change the hours with `NIGHT_START` and `NIGHT_END` in `settings.sh`.
 
 ## Morning bus times
 
-On weekday mornings (6–11 AM) a band under the weather shows the next three Harvard-bound **66** buses from Cambridge St opp Hano St, with arrival times at N Harvard St by HBS, from the [MBTA's public API](https://www.mbta.com/developers/v3-api). Live predictions get a small signal icon; scheduled-only times are gray. From 7 to 10 AM the Kindle refreshes every 10 minutes instead of hourly. The stops, route and hours are in `COMMUTE` at the top of the commute section of `render/render.py`; the Kindle's refresh window is in `config.sh` (`COMMUTE_START`, `COMMUTE_END`, `COMMUTE_EVERY`, `COMMUTE_LAST_DAY`).
+On weekday mornings (6–11 AM) a band under the weather shows the next three Harvard-bound **66** buses from Cambridge St opp Hano St, with arrival times at N Harvard St by HBS, from the [MBTA's public API](https://www.mbta.com/developers/v3-api). Live predictions get a small signal icon; scheduled-only times are gray. From 7 to 10 AM the Kindle refreshes every 10 minutes instead of hourly. The stops, route and hours are in `COMMUTE` at the top of the commute section of `render/render.py`; the Kindle's refresh window is in `settings.sh` (`COMMUTE_START`, `COMMUTE_END`, `COMMUTE_EVERY`, `COMMUTE_LAST_DAY`).
 

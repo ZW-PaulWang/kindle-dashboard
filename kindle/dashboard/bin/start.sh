@@ -25,6 +25,14 @@ for fb in /mnt/us/libkh/bin/fbink /mnt/us/koreader/fbink; do
     [ -x "$fb" ] && { "$fb" -q -m -M "Starting dashboard..."; break; }
 done
 
+# Install a published update first, so a dashboard broken by a bad version can be fixed from
+# GitHub with a tap on Start. A separate shell: a broken common.sh or update.sh can't stop the start.
+if ping -c 1 -W 3 api.github.com >/dev/null 2>&1; then
+    sh -c '. "$1/bin/common.sh" && . "$1/bin/update.sh" && load_config && apply_update' start "$DIR" >>"$LOG" 2>&1 </dev/null
+else
+    log "No network; starting without checking for updates"
+fi
+
 if command -v setsid >/dev/null 2>&1; then
     setsid sh "$DIR/bin/dash.sh" >>"$LOG" 2>&1 </dev/null &
 else

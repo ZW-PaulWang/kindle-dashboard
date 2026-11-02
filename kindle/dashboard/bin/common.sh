@@ -15,6 +15,9 @@ load_config() {
         log "ERROR: $DIR/config.sh is missing (copy config.example.sh and fill it in)"
         return 1
     fi
+    # settings.sh comes from the repo with each update; config.sh (this Kindle's repo and token)
+    # is read last, so a setting in it still wins.
+    [ -f "$DIR/settings.sh" ] && . "$DIR/settings.sh"
     . "$DIR/config.sh"
     BRANCH="${BRANCH:-output}"
     REFRESH_MINUTE="${REFRESH_MINUTE:-5}"
@@ -25,6 +28,8 @@ load_config() {
     COMMUTE_END="${COMMUTE_END:-10}"         # ... to COMMUTE_END:00, refresh every COMMUTE_EVERY minutes
     COMMUTE_EVERY="${COMMUTE_EVERY:-10}"
     COMMUTE_LAST_DAY="${COMMUTE_LAST_DAY:-5}"  # 5 = Monday to Friday, 7 = every day
+    UPDATES="${UPDATES:-1}"          # 1: install new versions of these scripts from GitHub (bin/update.sh)
+    LOG_UPLOAD="${LOG_UPLOAD:-1}"    # 1: send new log lines to the repo's logs branch with each render request
     if [ -z "$REPO" ] || [ -z "$GITHUB_TOKEN" ]; then
         log "ERROR: REPO and GITHUB_TOKEN must be set in config.sh"
         return 1
@@ -39,6 +44,7 @@ find_fbink() {
 }
 
 API="https://api.github.com/repos"
+LUAJIT="$R/mnt/us/koreader/luajit"
 
 # Download one published file from the output branch: gh_get <name> <dest>
 gh_get() {
@@ -92,22 +98,39 @@ fetch_image() {
     log "Downloaded $(wc -c <"$IMG") bytes (rendered $(sed -n 's/.*"label": *"\([^"]*\)".*/\1/p' "$DIR/meta.json" 2>/dev/null))"
 }
 
-# Ask GitHub to render right now. Needs "Actions: Read and write" on the token.
-trigger_render() {
-    body='{"ref":"main"}'
+# The render request body; update.sh replaces these to send the new log lines along with it.
+render_request() { LOG_UPTO=""; echo '{"ref":"main"}'; }
+log_sent() { :; }
+
+# POST the JSON file $1 to the render workflow; prints the HTTP status.
+dispatch_render() {
     url="$API/$REPO/actions/workflows/render.yml/dispatches"
     if command -v curl >/dev/null 2>&1; then
-        code="$(curl -s -o "$T"/dash.dispatch -w '%{http_code}' --max-time 30 -X POST \
+        curl -s -o "$T"/dash.dispatch -w '%{http_code}' --max-time 30 -X POST \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            -d "$body" "$url")"
+            --data-binary "@$1" "$url"
     else
-        wget -q -T 30 -O "$T"/dash.dispatch --post-data "$body" \
+        wget -q -T 30 -O "$T"/dash.dispatch --post-file "$1" \
             --header "Authorization: Bearer $GITHUB_TOKEN" \
-            --header "Accept: application/vnd.github+json" "$url" && code=204 || code=error
+            --header "Accept: application/vnd.github+json" "$url" && echo 204 || echo error
     fi
-    [ "$code" = 204 ] && return 0
+}
+
+# Ask GitHub to render right now. Needs "Actions: Read and write" on the token.
+trigger_render() {
+    render_request >"$T"/dash.request
+    code="$(dispatch_render "$T"/dash.request)"
+    if [ "$code" = 422 ] && [ -n "$LOG_UPTO" ]; then
+        # Usually a render workflow that doesn't take the log yet: ask without it.
+        log "Render request with the log refused ($(head -c 160 "$T"/dash.dispatch 2>/dev/null)); asking without it"
+        LOG_UPTO=""
+        echo '{"ref":"main"}' >"$T"/dash.request
+        code="$(dispatch_render "$T"/dash.request)"
+    fi
+    rm -f "$T"/dash.request
+    [ "$code" = 204 ] && { log_sent; return 0; }
     log "Couldn't start a render (HTTP $code): $(head -c 160 "$T"/dash.dispatch 2>/dev/null)"
     [ "$code" = 403 ] && log "  Add 'Actions: Read and write' to the Kindle's GitHub token so it can ask for fresh renders."
     return 1

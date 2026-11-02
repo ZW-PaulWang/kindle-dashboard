@@ -3,6 +3,7 @@
 # Swipe left or right to flip between the dashboard (page 1) and today's menu (page 2).
 # Double-tap the screen to exit back to the normal Kindle UI.
 . "${DASH_ROOT:-}/mnt/us/extensions/dashboard/bin/common.sh"
+. "$DIR/bin/update.sh"
 
 MAIN_PID=$$
 echo $$ >"$PIDFILE"
@@ -44,6 +45,21 @@ restore_ui() {
     exit 0
 }
 
+# A new version was installed: hand over to the new dash.sh. The Kindle UI stays stopped and
+# the screen keeps its image until the new one redraws it.
+restart_dashboard() {
+    EXITING=1
+    trap '' USR1 USR2
+    log "Restarting with version $(installed_version)"
+    rm -f "$PIDFILE" "$T/dashboard.input" "$SWIPES" "$SWIPES.work"
+    [ -n "$SLEEP_PID" ] && kill "$SLEEP_PID" 2>/dev/null
+    pkill -f "bin/gestures.lua" 2>/dev/null
+    [ -n "$READERS" ] && kill $READERS 2>/dev/null
+    sync
+    launch_dashboard
+    exit 0
+}
+
 # Stop the UI so it doesn't draw over the dashboard. The job sends SIGTERM on stop; ignore it.
 trap "" TERM
 stop lab126_gui 2>/dev/null || /etc/init.d/framework stop
@@ -59,7 +75,6 @@ lipc-set-prop com.lab126.cmd wirelessEnable 1 2>/dev/null
 # A reader job per device turns each printed gesture into a signal for this shell:
 #   double-tap  -> USR1 (restore_ui: back to the Kindle UI)
 #   swipe-*     -> the direction is appended to $SWIPES, then USR2 (handled by nap)
-LUAJIT="$R/mnt/us/koreader/luajit"
 # A USR2 that lands just before the main shell starts waiting would leave the swipe queued
 # until the pause ends: nudge again every second until the queue has been taken (at most 30 s).
 nudge_swipes() {
@@ -296,6 +311,7 @@ refresh() {
         t0=$(date +%s)
         trigger_render && wait_for_render $(( t0 - 120 ))
         if fetch_image; then OFFLINE=""; else log "Keeping the previous image"; fi
+        apply_update && restart_dashboard
     else
         log "No Wi-Fi; keeping the previous image"
     fi
@@ -309,6 +325,7 @@ refresh() {
 in_night || show_page
 sleep 2          # let the tap that launched us settle before watching for gestures
 watch_input
+confirm_update   # got this far: a fresh update works, so its watchdog stands down
 in_night || refresh
 BATTERY_EVERY=600   # redraw the battery indicator every 10 minutes between refreshes
 while true; do
