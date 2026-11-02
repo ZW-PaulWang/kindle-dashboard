@@ -991,6 +991,11 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     return img.point([min(255, int(v / 17 + 0.5) * 17) for v in range(256)])
 
 
+def quantize(im: Image.Image) -> Image.Image:
+    """Snap to the panel's 16 gray levels (multiples of 17)."""
+    return im.point([min(255, int(v / 17 + 0.5) * 17) for v in range(256)])
+
+
 # Footer slots the Kindle draws into (keep in sync with kindle/dashboard/bin/common.sh).
 STALE_W, STALE_H = 420, 50
 STALE_X, STALE_Y = W - MARGIN - STALE_W, H - 92
@@ -1068,9 +1073,11 @@ def main(argv=None) -> int:
     img.save(out, format="PNG", optimize=True)
     # Companions the Kindle downloads with the image: render time, stale banner and night screen.
     render_stale(now).save(out.parent / "stale.png", optimize=True)
+    import status  # noqa: E402  (imported here: status.py itself imports this module)
+    status.pill(f"Offline. Updated {clock(now)}", "wifi-off", inverted=True).save(out.parent / "offline.png", optimize=True)
     render_night(now, wx).save(out.parent / "night.png", optimize=True)
     (out.parent / "meta.json").write_text(json.dumps({"rendered_at": int(now.timestamp()), "label": clock(now)}) + "\n")
-    print(f"wrote {out} ({img.size[0]}x{img.size[1]}, mode {img.mode}) + stale.png, night.png, meta.json")
+    print(f"wrote {out} ({img.size[0]}x{img.size[1]}, mode {img.mode}) + stale.png, offline.png, night.png, meta.json")
     return 0
 
 

@@ -76,6 +76,7 @@ wait_for_wifi() {
             return 0
         fi
         [ $i -eq 0 ] && { log "Waiting for Wi-Fi (state: $(wifi_state))"; sync; }
+        show_status "wifi_$(( i % 3 + 1 ))"
         i=$((i + 1)); sleep 2
     done
     log "No Wi-Fi after 4 minutes (state: $(wifi_state)). Is Wi-Fi on and Airplane Mode off?"
@@ -169,19 +170,22 @@ night() {
     log "Good morning (screen cleaned)"
 }
 
+OFFLINE=""
 refresh() {
     log "Refreshing (battery $(battery_level)%)"
+    OFFLINE=1
     if wait_for_wifi; then
         # Ask for a fresh render first (GitHub skips many scheduled runs), then download.
+        show_status update_1
         t0=$(date +%s)
         trigger_render && wait_for_render $(( t0 - 120 ))
-        fetch_image || log "Keeping the previous image"
+        if fetch_image; then OFFLINE=""; else log "Keeping the previous image"; fi
     else
         log "No Wi-Fi; keeping the previous image"
     fi
     [ -f "$IMG" ] && show_image
     show_battery
-    show_stale_if_old
+    if [ -n "$OFFLINE" ]; then show_offline; else show_stale_if_old; fi
     sync
 }
 
@@ -192,7 +196,12 @@ if ! in_night; then
         show_battery
         show_stale_if_old
     else
-        show_notice "Starting dashboard..." "Connecting to Wi-Fi and downloading the first image."
+        fb="$(find_fbink)"
+        if [ -f "$DIR/status/start.png" ] && [ -n "$fb" ]; then
+            "$fb" -q -c -f -g file="$DIR/status/start.png"
+        else
+            show_notice "Starting dashboard..." "Connecting to Wi-Fi and downloading the first image."
+        fi
     fi
     refresh
 fi
@@ -216,7 +225,7 @@ while true; do
     pause "$step"
     if [ "$step" -lt "$wait_s" ]; then
         show_battery
-        show_stale_if_old
+        if [ -n "$OFFLINE" ]; then show_offline; else show_stale_if_old; fi
     elif ! in_night; then
         LOGGED=""
         refresh

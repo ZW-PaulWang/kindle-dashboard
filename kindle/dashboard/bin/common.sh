@@ -71,12 +71,13 @@ fetch_image() {
         return 1
     fi
     gh_get meta.json /tmp/dash.meta.part 2>/dev/null || rm -f /tmp/dash.meta.part
-    for f in stale night; do
+    for f in stale offline night; do
         gh_get "$f.png" "/tmp/dash.$f.part" 2>/dev/null && is_png "/tmp/dash.$f.part" || rm -f "/tmp/dash.$f.part"
     done
     cat /tmp/dash.png.part >"$IMG"
     [ -f /tmp/dash.meta.part ] && cat /tmp/dash.meta.part >"$DIR/meta.json"
     [ -f /tmp/dash.stale.part ] && cat /tmp/dash.stale.part >"$DIR/stale.png"
+    [ -f /tmp/dash.offline.part ] && cat /tmp/dash.offline.part >"$DIR/offline.png"
     [ -f /tmp/dash.night.part ] && cat /tmp/dash.night.part >"$DIR/night.png"
     rm -f /tmp/dash.*.part
     log "Downloaded $(wc -c <"$IMG") bytes (rendered $(sed -n 's/.*"label": *"\([^"]*\)".*/\1/p' "$DIR/meta.json" 2>/dev/null))"
@@ -107,6 +108,7 @@ trigger_render() {
 wait_for_render() {
     i=0
     while [ $i -lt 12 ]; do
+        show_status "update_$(( i % 3 + 1 ))"
         sleep 15
         if gh_get meta.json /tmp/dash.poll 2>/dev/null && [ "$(meta_epoch /tmp/dash.poll)" -ge "$1" ] 2>/dev/null; then
             return 0
@@ -188,6 +190,17 @@ draw_overlay() {
     else
         eips -g "$1" -x "$2" -y "$3"
     fi
+}
+
+# Status pills (render/status.py) in the same footer slot as "Updated ...", so a busy
+# dashboard never looks frozen: show_status wifi_1..3 | update_1..3.
+show_status() {
+    [ -f "$DIR/status/$1.png" ] && draw_overlay "$DIR/status/$1.png" $STALE_X $STALE_Y
+}
+
+# Black "Offline. Updated 7:05 AM" pill (render/render.py) after a refresh that couldn't download.
+show_offline() {
+    if [ -f "$DIR/offline.png" ]; then draw_overlay "$DIR/offline.png" $STALE_X $STALE_Y; else show_stale_if_old; fi
 }
 
 # "Last updated ..." banner (render/render.py render_stale) over the footer's right side,
