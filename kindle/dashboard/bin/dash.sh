@@ -1,22 +1,33 @@
 #!/bin/sh
 # Dashboard loop: stop the Kindle UI, show the dashboard, refresh hourly.
+# Swipe left or right to flip between the dashboard (page 1) and today's menu (page 2).
 # Double-tap the screen to exit back to the normal Kindle UI.
-. /mnt/us/extensions/dashboard/bin/common.sh
+. "${DASH_ROOT:-}/mnt/us/extensions/dashboard/bin/common.sh"
 
+MAIN_PID=$$
 echo $$ >"$PIDFILE"
 log "Starting dashboard (pid $$)"
 load_config || { rm -f "$PIDFILE"; exit 1; }
 
-SLEEP_PID=""
 EXITING=""
+READERS=""                       # gesture reader jobs (killed on exit)
+SWIPES="$T/dashboard.swipes"     # queue the gesture readers append "left" / "right" to
+PAGE=1                           # 1 = dashboard, 2 = menu
+PAGES=2
+NIGHT_MODE=""                    # set while the night screen is up: swipes are ignored
+REFRESHING=""                    # set during refresh(): a flipped page shows the busy pill
+OFFLINE=""                       # set when the last refresh couldn't download
 
 restore_ui() {
     [ -n "$EXITING" ] && return
     EXITING=1
-    log "Exiting dashboard ($(cat /tmp/dashboard.input 2>/dev/null || echo signal)), restarting the Kindle UI"
+    trap '' USR2
+    log "Exiting dashboard ($(cat "$T/dashboard.input" 2>/dev/null || echo signal)), restarting the Kindle UI"
+    # Pid file first: a reader that sees its detector die while it's gone knows not to warn.
+    rm -f "$PIDFILE" "$T/dashboard.input" "$SWIPES" "$SWIPES.work"
     [ -n "$SLEEP_PID" ] && kill "$SLEEP_PID" 2>/dev/null
-    pkill -f "doubletap.lua" 2>/dev/null
-    rm -f "$PIDFILE" /tmp/dashboard.input
+    pkill -f "bin/gestures.lua" 2>/dev/null
+    [ -n "$READERS" ] && kill $READERS 2>/dev/null
     lipc-set-prop com.lab126.powerd preventScreenSaver 0 2>/dev/null
     # The UI takes a while to come back; say so right away so the tap clearly registered.
     show_notice "Leaving dashboard..." "The Kindle home screen will appear in about 30 seconds."
@@ -38,32 +49,137 @@ trap "" TERM
 stop lab126_gui 2>/dev/null || /etc/init.d/framework stop
 sleep 2
 trap restore_ui USR1 INT HUP TERM
+trap ':' USR2    # a swipe: wakes 'wait' in nap(), which then reads the queue
 
 lipc-set-prop com.lab126.powerd preventScreenSaver 1
 lipc-set-prop com.lab126.cmd wirelessEnable 1 2>/dev/null
 
-# Exit on a double tap. The touchscreen is the input device that reports absolute
-# positions; its event path differs between units, so find it via sysfs.
-LUAJIT=/mnt/us/koreader/luajit
+# Gestures (bin/gestures.lua under KOReader's LuaJIT) on the touchscreen, the input device
+# that reports absolute positions; its event path differs between units, so find it via sysfs.
+# A reader job per device turns each printed gesture into a signal for this shell:
+#   double-tap  -> USR1 (restore_ui: back to the Kindle UI)
+#   swipe-*     -> the direction is appended to $SWIPES, then USR2 (handled by nap)
+LUAJIT="$R/mnt/us/koreader/luajit"
+# A USR2 that lands just before the main shell starts waiting would leave the swipe queued
+# until the pause ends: nudge again every second until the queue has been taken (at most 30 s).
+nudge_swipes() {
+    n=0
+    while [ $n -lt 30 ]; do
+        sleep 1
+        [ -e "$SWIPES" ] || return 0
+        kill -USR2 "$MAIN_PID" 2>/dev/null || return 0
+        n=$((n + 1))
+    done
+}
+read_gestures() {
+    "$LUAJIT" "$DIR/bin/gestures.lua" "$1" | {
+        while read -r g at; do
+            case "$g" in
+                double-tap)
+                    echo "double tap at $at" >"$T/dashboard.input"
+                    kill -USR1 "$MAIN_PID"
+                    exit 0 ;;
+                swipe-left|swipe-right)
+                    echo "${g#swipe-}" >>"$SWIPES"
+                    kill -USR2 "$MAIN_PID"
+                    # Detached (not our child): a child exiting sends SIGCHLD, which makes
+                    # 'read' above give up on some busybox versions and would end this reader.
+                    ( nudge_swipes & ) ;;
+            esac
+        done
+        # Quiet when the dashboard is exiting (pid file gone) or this reader outlived a crash.
+        [ -f "$PIDFILE" ] && kill -0 "$MAIN_PID" 2>/dev/null &&
+            log "WARNING: gesture reader for $1 stopped; swipes and double-tap exit disabled"
+    }
+}
 watch_input() {
-    rm -f /tmp/dashboard.input
+    rm -f "$T/dashboard.input" "$SWIPES" "$SWIPES.work"
+    # Detectors left over from a dashboard that crashed would queue every swipe a second time.
+    pkill -f "bin/gestures.lua" 2>/dev/null
     if [ ! -x "$LUAJIT" ]; then
-        log "WARNING: $LUAJIT not found (is KOReader installed?), double-tap exit disabled"
+        log "WARNING: $LUAJIT not found (is KOReader installed?), swipes and double-tap exit disabled"
         return
     fi
     found=""
-    for caps in /sys/class/input/event*/device/capabilities/abs; do
+    for caps in "$R"/sys/class/input/event*/device/capabilities/abs; do
         [ "$(cat "$caps" 2>/dev/null)" = "0" ] && continue
         ev="$(basename "$(dirname "$(dirname "$(dirname "$caps")")")")"
-        name="$(cat "/sys/class/input/$ev/device/name" 2>/dev/null)"
+        [ -e "$R/dev/input/$ev" ] || continue
+        name="$(cat "$R/sys/class/input/$ev/device/name" 2>/dev/null)"
         found="$found $ev"
-        log "Watching /dev/input/$ev ($name) for a double tap"
-        (
-            "$LUAJIT" "$DIR/bin/doubletap.lua" "/dev/input/$ev" >/tmp/dashboard.input 2>&1 || exit 0
-            kill -USR1 $$
-        ) &
+        log "Watching /dev/input/$ev ($name) for swipes and double taps"
+        read_gestures "$R/dev/input/$ev" &
+        READERS="$READERS $!"
     done
-    [ -z "$found" ] && log "WARNING: no touchscreen found, double-tap exit disabled"
+    [ -z "$found" ] && log "WARNING: no touchscreen found, swipes and double-tap exit disabled"
+}
+
+# Take the queued swipes and move PAGE: left = next page, right = previous, wrapping around.
+# Returns 0 if the page should be redrawn. At night swipes are dropped.
+take_swipes() {
+    [ -f "$SWIPES" ] || return 1
+    mv -f "$SWIPES" "$SWIPES.work" 2>/dev/null || return 1
+    # $(cat) rather than 'read': a signal (another swipe) can cut a busybox 'read' short.
+    moved=""
+    for d in $(cat "$SWIPES.work" 2>/dev/null); do
+        case "$d" in left|right) moved="$moved $d" ;; esac
+    done
+    rm -f "$SWIPES.work"
+    [ -n "$moved" ] || return 1
+    if [ -n "$NIGHT_MODE" ]; then
+        log "Swipe ${moved# } ignored at night"
+        return 1
+    fi
+    for d in $moved; do
+        if [ "$d" = left ]; then PAGE=$(( PAGE % PAGES + 1 )); else PAGE=$(( (PAGE + PAGES - 2) % PAGES + 1 )); fi
+    done
+    log "Swipe ${moved# }: page $PAGE ($(page_name))"
+    return 0
+}
+
+# Called by nap() before it starts waiting and whenever it wakes. Loops because a swipe can
+# arrive while the page is being drawn.
+handle_swipes() {
+    while take_swipes; do show_page; done
+    return 0
+}
+
+page_name() { [ "$PAGE" = 2 ] && echo menu || echo dashboard; }
+
+# The right pill for the screen: the busy pill during a refresh, else "Offline" after a failed
+# one, else the "Last updated" banner when the image is old.
+show_page_status() {
+    if [ -n "$REFRESHING" ]; then
+        [ -n "$LAST_STATUS" ] && show_status "$LAST_STATUS"
+    elif [ -n "$OFFLINE" ]; then
+        show_offline
+    else
+        show_stale_if_old
+    fi
+}
+
+# Full refresh of the current page, then the battery and status overlays.
+show_page() {
+    if [ "$PAGE" = 2 ]; then
+        if [ -f "$MENU_IMG" ]; then
+            show_image "$MENU_IMG"
+        else
+            show_notice "No menu yet" "Add today's menu on the website. Swipe again for the dashboard."
+        fi
+    elif [ -f "$IMG" ]; then
+        show_image "$IMG"
+    else
+        # Very first start: nothing downloaded yet.
+        pfb="$(find_fbink)"
+        if [ -f "$DIR/status/start.png" ] && [ -n "$pfb" ]; then
+            "$pfb" -q -c -f -g file="$DIR/status/start.png"
+        else
+            show_notice "Starting dashboard..." "Connecting to Wi-Fi and downloading the first image."
+        fi
+        return 0
+    fi
+    show_battery
+    show_page_status
 }
 
 wifi_state() { lipc-get-prop com.lab126.wifid cmState 2>/dev/null || echo unknown; }
@@ -77,7 +193,7 @@ wait_for_wifi() {
         fi
         [ $i -eq 0 ] && { log "Waiting for Wi-Fi (state: $(wifi_state))"; sync; }
         show_status "wifi_$(( i % 3 + 1 ))"
-        i=$((i + 1)); sleep 2
+        i=$((i + 1)); nap 2
     done
     log "No Wi-Fi after 4 minutes (state: $(wifi_state)). Is Wi-Fi on and Airplane Mode off?"
     return 1
@@ -117,28 +233,22 @@ in_night() {
     [ "$h" -ge "$NIGHT_START" ] && [ "$h" -lt "$NIGHT_END" ]
 }
 
-# Background sleep + wait, so a double tap is handled immediately.
-pause() {
-    sleep "$1" &
-    SLEEP_PID=$!
-    wait "$SLEEP_PID"
-    SLEEP_PID=""
-}
-
 # Suspend to RAM with an RTC alarm $1 seconds ahead. Returns non-zero if this Kindle won't do it.
 rtc_suspend() {
     rtc=""
-    for r in /sys/class/rtc/rtc0/wakealarm /sys/class/rtc/rtc1/wakealarm; do
+    for r in "$R"/sys/class/rtc/rtc0/wakealarm "$R"/sys/class/rtc/rtc1/wakealarm; do
         [ -w "$r" ] && { rtc="$r"; break; }
     done
     [ -n "$rtc" ] || return 1
     echo 0 >"$rtc"
     echo "+$1" >"$rtc" 2>/dev/null || echo $(( $(date +%s) + $1 )) >"$rtc" || return 1
-    echo mem >/sys/power/state 2>/dev/null || return 1
+    echo mem >"$R/sys/power/state" 2>/dev/null || return 1
 }
 
 # Midnight to 6 AM: show the night screen, switch Wi-Fi off, deep sleep (or idle) until morning.
+# Swipes are ignored until then.
 night() {
+    NIGHT_MODE=1
     secs=$(secs_until_hour "$NIGHT_END")
     deadline=$(( $(date +%s) + secs ))
     log "Night: sleeping ${secs}s until ${NIGHT_END}:00"
@@ -164,16 +274,22 @@ night() {
     done
     [ $early -ge 3 ] && log "Deep sleep kept ending straight away; idling with Wi-Fi off instead"
     left=$(( deadline - $(date +%s) ))
-    [ $left -gt 0 ] && pause "$left"
+    [ $left -gt 0 ] && nap "$left"
+    take_swipes          # drop swipes that came in at night
+    NIGHT_MODE=""
+    PAGE=1               # mornings start on the dashboard
     lipc-set-prop com.lab126.cmd wirelessEnable 1 2>/dev/null
     deep_clean
     log "Good morning (screen cleaned)"
 }
 
-OFFLINE=""
+# Download a fresh image. Swipes during the waits flip the page straight away (nap);
+# swipes during the download itself are queued and applied before the final redraw.
 refresh() {
     log "Refreshing (battery $(battery_level)%)"
     OFFLINE=1
+    REFRESHING=1
+    LAST_STATUS=""
     if wait_for_wifi; then
         # Ask for a fresh render first (GitHub skips many scheduled runs), then download.
         show_status update_1
@@ -183,30 +299,17 @@ refresh() {
     else
         log "No Wi-Fi; keeping the previous image"
     fi
-    [ -f "$IMG" ] && show_image
-    show_battery
-    if [ -n "$OFFLINE" ]; then show_offline; else show_stale_if_old; fi
+    REFRESHING=""
+    take_swipes
+    show_page
     sync
 }
 
-# Show the last dashboard straight away, so the screen is never blank while Wi-Fi connects.
-if ! in_night; then
-    if [ -f "$IMG" ]; then
-        show_image
-        show_battery
-        show_stale_if_old
-    else
-        fb="$(find_fbink)"
-        if [ -f "$DIR/status/start.png" ] && [ -n "$fb" ]; then
-            "$fb" -q -c -f -g file="$DIR/status/start.png"
-        else
-            show_notice "Starting dashboard..." "Connecting to Wi-Fi and downloading the first image."
-        fi
-    fi
-    refresh
-fi
-sleep 2          # let the tap that launched us settle before watching for the next one
+# Show the last image straight away, so the screen is never blank while Wi-Fi connects.
+in_night || show_page
+sleep 2          # let the tap that launched us settle before watching for gestures
 watch_input
+in_night || refresh
 BATTERY_EVERY=600   # redraw the battery indicator every 10 minutes between refreshes
 while true; do
     if in_night; then
@@ -222,10 +325,10 @@ while true; do
     [ "$step" -gt "$BATTERY_EVERY" ] && step=$BATTERY_EVERY
     [ -n "$LOGGED" ] || log "Next refresh in ${wait_s}s"
     LOGGED=1
-    pause "$step"
+    nap "$step"
     if [ "$step" -lt "$wait_s" ]; then
         show_battery
-        if [ -n "$OFFLINE" ]; then show_offline; else show_stale_if_old; fi
+        show_page_status
     elif ! in_night; then
         LOGGED=""
         refresh

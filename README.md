@@ -1,6 +1,6 @@
 # Kindle dashboard
 
-An always-on e-ink dashboard for a jailbroken Kindle Paperwhite 5: Boston weather, a to-do list and a coffee bean of the day.
+An always-on e-ink dashboard for a jailbroken Kindle Paperwhite 5: Boston weather, a to-do list and a coffee bean of the day. Swipe to a second page: today's meal plan, set like a restaurant menu.
 
 ## Updating it
 
@@ -8,23 +8,57 @@ Use the web page in `docs/` (see [Web page](#web-page)), or edit these files on 
 
 - `todo.md`: `- [ ] item` for open items, `- [x] item` for done ones.
 - `coffee.md`: saved beans, one `## Bean name` per bean, then `- Key: value` lines (Grams, Grind, Roast, Ratio, Time). The `- Coffee: name` and `- Decaf: name` lines at the top choose the beans the dashboard shows. Leave `Decaf:` empty to show one bean only. If `Coffee:` is empty, the dashboard rotates through the saved beans daily.
+- `menu.md`: today's meal plan for the second page (see [Today's menu](#todays-menu)).
 
 Each edit triggers a new render. The Kindle downloads the latest image at 5 minutes past every hour.
 
 ## Web page
 
-`docs/index.html` is a single page that edits `todo.md` and `coffee.md` through the GitHub API. Type a saved bean's name in the Coffee or Decaf box to show it on the dashboard; save the settings of a new bean once and they come back when you type its name again. The page also shows the current dashboard image.
+`docs/index.html` is a single page that edits `todo.md`, `coffee.md` and `menu.md` through the GitHub API. Type a saved bean's name in the Coffee or Decaf box to show it on the dashboard; save the settings of a new bean once and they come back when you type its name again. The page also shows the current dashboard and menu images (tap Dashboard / Menu, or swipe the preview).
 
 1. Make a fine-grained token at GitHub → Settings → Developer settings → Personal access tokens: this repository only, **Contents: Read and write**. (The Kindle's token is read-only, so it does not work here.)
 2. Open the page and paste the token. The page keeps it in that browser's local storage only.
 
 To host the page: Settings → Pages → Build and deployment → Deploy from a branch → `main`, folder `/docs`. The page is at `https://OWNER.github.io/kindle-dashboard/`. It contains no data and no token, so a public address is safe. For a private repository, GitHub Pages needs a paid plan (GitHub Pro, free with GitHub Education). Without Pages, download `docs/index.html` and open it in a browser; it works the same.
 
+## Today's menu
+
+The Kindle's second page shows the day's breakfast, lunch and dinner as a fine-dining menu card. On the web page, type one dish per line in the Breakfast, Lunch and Dinner boxes, with any details after a colon (`Salmon: miso glaze, rice`), and save. The new menu appears on the Kindle at its next download. Each save stamps today's date. If the menu was planned on an earlier day, the page says so.
+
+`menu.md` can also be edited by hand:
+
+```md
+# Today's Menu
+Date: 2026-11-02
+
+## Breakfast
+- Greek yogurt: honey, walnuts
+- flat white
+
+## Lunch
+- chicken caesar salad
+
+## Dinner
+- Salmon: miso glaze, rice, broccoli
+```
+
+The title line and `Date:` are optional. Only `- ` (or `* `, `+ `, `1.`) lines under `## Breakfast`, `## Lunch` and `## Dinner` count as dishes, and a meal can be empty.
+
+The renderer (`render/menu.py`) tidies each dish without an LLM and never adds a word:
+- It collapses spaces and strips stray bullets, numbering and `**bold**` marks.
+- It sets dish names in title case, with small words such as "and", "with", "of" and "au" in lowercase. Words you typed with capitals or digits stay as typed ("BBQ", "2 eggs").
+- It keeps details in the case you typed, joins them with commas and drops trailing punctuation.
+- It turns `w/` into "with" and `&` between words into "and". `w/o` stays as typed.
+- With no colon, the part after the first " with " becomes the details: "salmon with rice" becomes "Salmon", "rice".
+- Chinese punctuation (`：`, `，`) works like `:` and `,`.
+
+To check the tidying locally, run `python render/menu.py --selftest`.
+
 ## How it works
 
-1. `.github/workflows/render.yml` runs `render/render.py` when the Kindle asks for it (just before each hourly download), on every push, and every 3 hours as a backup. It fetches the weather from [Open-Meteo](https://open-meteo.com/) and draws a 1236×1648 grayscale PNG, plus `meta.json` (render time), `stale.png` (the "Last updated" banner) and `night.png` (the midnight-to-6 AM screen).
+1. `.github/workflows/render.yml` runs `render/render.py` when the Kindle asks for it (just before each hourly download), on every push, and every 3 hours as a backup. It fetches the weather from [Open-Meteo](https://open-meteo.com/) and draws a 1236×1648 grayscale PNG, plus `meta.json` (render time), `stale.png` (the "Last updated" banner) and `night.png` (the midnight-to-6 AM screen) and `menu.png` (page 2, the menu). If the menu fails to render, the dashboard is still published.
 2. These files are force-pushed as a single commit to the `output` branch, so history doesn't grow.
-3. On the Kindle, the KUAL extension in `kindle/dashboard/` stops the Kindle UI and downloads and displays the image hourly. It then draws a battery indicator (icon, exact %, charging bolt) in the middle of the footer, because only the Kindle knows the level. The icons are pre-rendered by `render/battery.py` into `kindle/dashboard/battery/`, and the indicator is redrawn every 10 minutes. To get the normal Kindle UI back, double-tap the screen (uses KOReader's LuaJIT). In an emergency, hold the power button ~15 s to restart.
+3. On the Kindle, the KUAL extension in `kindle/dashboard/` stops the Kindle UI and downloads and displays the image hourly. It then draws a battery indicator (icon, exact %, charging bolt) in the middle of the footer, because only the Kindle knows the level. The icons are pre-rendered by `render/battery.py` into `kindle/dashboard/battery/`, and the indicator is redrawn every 10 minutes. Swipe left or right to flip between the dashboard and the menu (the dots at the bottom show the page). Single taps do nothing. Swipes are ignored overnight. To get the normal Kindle UI back, double-tap the screen. `bin/gestures.lua` reads the touchscreen using KOReader's LuaJIT. In an emergency, hold the power button ~15 s to restart.
 
 ## Render locally
 
@@ -40,7 +74,7 @@ python render/render.py --out out/dashboard.png --weather-json render/sample_wea
 2. Copy `config.example.sh` to `config.sh` and set `REPO` and `GITHUB_TOKEN`. Use a fine-grained token for this repo only, with Contents set to read-only.
 3. In KUAL, run **Dashboard → Test download**, then **Start dashboard**. Logs are written to `extensions/dashboard/dashboard.log`.
 
-Changes to `kindle/dashboard/` (for example the battery level) reach the Kindle only when you copy the folder again over USB. Keep your `config.sh`. The image itself always comes from GitHub.
+Changes to `kindle/dashboard/` (for example the battery level) reach the Kindle only when you copy the folder again over USB. Keep your `config.sh`. The image itself always comes from GitHub. When updating from a version without the menu page, delete the old `bin/doubletap.lua`, since `bin/gestures.lua` replaces it.
 
 ## Adding to-dos from an iPhone
 

@@ -10,6 +10,7 @@ on:
     paths:
       - todo.md
       - coffee.md
+      - menu.md
       - render/**
       - fonts/**
       - .github/workflows/render.yml
@@ -29,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: main   # always the latest to-dos and beans, whatever triggered the run
+          ref: main   # always the latest to-dos, beans and menu, whatever triggered the run
 
       - uses: actions/setup-python@v6
         with:
@@ -43,6 +44,7 @@ jobs:
 
       # Publish as a single orphan commit so the repo history doesn't grow every hour.
       # dashboard.png is the screen; meta.json (render time), stale.png, offline.png and night.png go with it.
+      # menu.png is page 2 (the meal plan); it is optional, so a failed menu render never blocks the dashboard.
       - name: Publish to the output branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -52,5 +54,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dashboard.png meta.json stale.png offline.png night.png
+          if [ -f menu.png ]; then git add menu.png; fi
           git commit -q -m "Dashboard $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" output

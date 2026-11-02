@@ -154,6 +154,17 @@
   #beans .tag { display: inline-block; margin-left: 8px; font-size: .78rem; font-weight: 600; border: 1.5px solid var(--ink-2); color: var(--ink-2); border-radius: 999px; padding: 0 8px; vertical-align: 2px; }
   #beans li.empty { color: var(--ink-3); border-bottom: 0; }
 
+  /* ---- Today's menu: three courses, one dish per line ---- */
+  #menu-hint { margin: -4px 0 14px; }
+  .meals { display: grid; gap: 18px; }
+  .meals textarea {
+    font: inherit; font-size: 1.05rem; color: var(--ink); background: var(--sheet); width: 100%;
+    border: var(--stroke) solid var(--ink); border-radius: 12px; padding: 9px 12px; line-height: 1.45;
+    resize: vertical; min-height: calc(3 * 1.45em + 22px); field-sizing: content; font-weight: 400;
+  }
+  .meals textarea::placeholder { color: var(--ink-3); opacity: 1; }
+  .menu-old { margin-top: 14px; padding: 10px 14px; border: var(--stroke) dashed var(--rule); border-radius: 12px; }
+
   /* ---- Kindle preview: drawn as the device ---- */
   .device {
     margin: 4px auto 0; max-width: 340px; background: var(--sheet);
@@ -163,6 +174,12 @@
   .device img { width: 100%; height: 100%; object-fit: contain; display: block; }
   .device .screen p { color: #666; padding: 20px; text-align: center; font-size: .92rem; }
   .preview-actions { display: flex; justify-content: center; margin-top: 10px; }
+  .device .screen { touch-action: pan-y; }
+  /* Dashboard / Menu switch: an outlined pill, the shown page filled in ink. */
+  .pages { display: flex; width: max-content; margin: 0 auto 14px; border: var(--stroke) solid var(--ink); border-radius: 999px; padding: 3px; background: var(--sheet); }
+  .pages button { border: 0; min-height: 38px; padding: 6px 18px; background: transparent; }
+  .pages button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .pages button:focus-visible { outline-offset: 2px; border-radius: 999px; }
 
   /* ---- Connect ---- */
   .connect { background: var(--sheet); border: var(--stroke-bold) solid var(--ink); border-radius: 22px; padding: 22px 18px; display: grid; gap: 16px; }
@@ -222,6 +239,18 @@
       <g fill="currentColor"><ellipse cx="81" cy="146" rx="6" ry="8.5"/><ellipse cx="113" cy="146" rx="6" ry="8.5"/></g>
       <g style="fill:var(--rule)"><ellipse cx="66" cy="158" rx="8" ry="4.5"/><ellipse cx="128" cy="158" rx="8" ry="4.5"/></g>
     </symbol>
+    <symbol id="cloche" viewBox="0 0 200 212">
+      <g fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse cx="100" cy="182" rx="90" ry="14" style="fill:var(--sheet)"/>
+        <path d="M28 170c0-58 32-96 72-96s72 38 72 96z" style="fill:var(--sheet)"/>
+        <path d="M18 170h164"/>
+        <circle cx="100" cy="60" r="13" style="fill:var(--ink-2)"/>
+        <path d="M52 136c2-18 12-33 26-42" stroke-width="6"/>
+        <path d="M92 146q8 8 16 0" stroke-width="7"/>
+      </g>
+      <g fill="currentColor"><ellipse cx="82" cy="128" rx="6" ry="8.5"/><ellipse cx="118" cy="128" rx="6" ry="8.5"/></g>
+      <g style="fill:var(--rule)"><ellipse cx="68" cy="146" rx="8" ry="4.5"/><ellipse cx="132" cy="146" rx="8" ry="4.5"/></g>
+    </symbol>
     <symbol id="bean" viewBox="0 0 120 120">
       <g fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
         <ellipse cx="60" cy="62" rx="34" ry="44" transform="rotate(28 60 62)" style="fill:var(--sheet)"/>
@@ -240,7 +269,7 @@
   <section class="connect" id="setup" hidden>
     <svg class="cup" viewBox="0 0 200 212" aria-hidden="true"><use href="#cup-art"/></svg>
     <h2>Connect this page to your dashboard</h2>
-    <p>It edits <code>todo.md</code> and <code>coffee.md</code> in your GitHub repository, which the Kindle reads from.</p>
+    <p>It edits <code>todo.md</code>, <code>coffee.md</code> and <code>menu.md</code> in your GitHub repository, which the Kindle reads from.</p>
     <ol class="hint">
       <li>Create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a> for this repository only.</li>
       <li>Give it <b>Contents: Read and write</b>.</li>
@@ -288,6 +317,24 @@
       <div class="row-actions"><button class="quiet" id="todo-clear">Clear done items</button></div>
     </section>
 
+    <!-- Today's menu (the Kindle's second page) -->
+    <section class="block" aria-labelledby="menu-title">
+      <div class="block-head">
+        <svg viewBox="0 0 200 212" aria-hidden="true"><use href="#cloche"/></svg>
+        <h2 id="menu-title">Today's menu</h2>
+        <span class="count" id="menu-count"></span>
+      </div>
+      <p class="hint" id="menu-hint">One dish per line. Add details after a colon: Salmon: miso glaze, rice</p>
+      <div class="meals">
+        <label class="field">Breakfast<textarea id="meal-breakfast" rows="3" spellcheck="true" autocapitalize="sentences" aria-describedby="menu-hint" placeholder="Greek yogurt: honey, walnuts"></textarea></label>
+        <label class="field">Lunch<textarea id="meal-lunch" rows="3" spellcheck="true" autocapitalize="sentences" aria-describedby="menu-hint" placeholder="Chicken caesar salad"></textarea></label>
+        <label class="field">Dinner<textarea id="meal-dinner" rows="3" spellcheck="true" autocapitalize="sentences" aria-describedby="menu-hint" placeholder="Salmon: miso glaze, rice, broccoli"></textarea></label>
+      </div>
+      <p class="hint menu-old" id="menu-old" hidden></p>
+      <p class="hint" style="margin-top:12px">The Kindle tidies capitals and punctuation into menu style. It never adds anything you didn't write.</p>
+      <div class="row-actions"><button class="quiet" id="menu-clear">Clear the menu</button></div>
+    </section>
+
     <!-- Beans -->
     <section class="block" aria-labelledby="beans-title">
       <div class="block-head">
@@ -301,9 +348,13 @@
     <!-- Preview -->
     <section class="block" aria-labelledby="preview-title">
       <div class="block-head"><h2 id="preview-title">On the Kindle now</h2></div>
-      <div class="device"><div class="screen" id="preview-body"><p>Loading the latest image…</p></div></div>
-      <div class="preview-actions"><button class="quiet" id="preview-reload">Reload image</button></div>
-      <p class="hint" style="text-align:center">Saved changes appear here in about a minute, and on the Kindle at 5 past the hour.</p>
+      <div class="pages" role="group" aria-label="Kindle page">
+        <button type="button" id="page-dashboard" aria-pressed="true" aria-controls="preview-body">Dashboard</button>
+        <button type="button" id="page-menu" aria-pressed="false" aria-controls="preview-body">Menu</button>
+      </div>
+      <div class="device"><div class="screen" id="preview-body" aria-live="polite"><p>Loading the latest image…</p></div></div>
+      <div class="preview-actions"><button class="quiet" id="preview-reload">Reload images</button></div>
+      <p class="hint" style="text-align:center">Saved changes appear here in about a minute, and on the Kindle at 5 past the hour. Swipe left or right on the Kindle to turn the page.</p>
     </section>
 
     <footer class="meta">Connected to <span id="repo-label"></span>. <a href="#" id="disconnect">Disconnect</a></footer>
@@ -460,6 +511,53 @@ function writeCoffee(c) {
 }
 const findBean = (name) => state.coffee.beans.find((b) => beanKey(b.name) === beanKey(name));
 
+// ---- menu.md: optional "# Title" and "Date: YYYY-MM-DD", then "## Breakfast", "## Lunch",
+//      "## Dinner", each with one "- Dish: details" line per dish. render.py does the tidying. ----
+const MEALS = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner" };
+const BULLET_RE = /^\s*(?:(?:[-*+–—]|\d{1,2}[.)])\s+|[•·]\s*)+/;   // "- ", "* ", "1. ", "2) ", "•"
+const isoDay = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+// Which lines are headings, dishes and dates follows render/menu.py's parse_menu, so the boxes
+// show what the Kindle shows and saving without edits never changes the Kindle's menu.
+const DISH_RE = /^\s*(?:[-*+•]|\d{1,2}[.)])\s+(.*\S)\s*$/;         // same rule as menu.py
+const ISO_DATE_RE = /^\s*date\s*:\s*(\d{4}-\d{2}-\d{2})\s*$/i;       // menu.py reads these anywhere
+function parseMenu(text) {
+  const m = { title: "", date: "", head: [], meals: { breakfast: [], lunch: [], dinner: [] }, extra: { breakfast: [], lunch: [], dinner: [] }, tail: [] };
+  let meal = null, other = false;   // inside a meal section / inside some other "## " section
+  for (const line of text.replace(/\r/g, "").split("\n")) {
+    const st = line.trim();
+    if (st.startsWith("## ")) {
+      const key = st.slice(3).trim().replace(/:+$/, "").trim().toLowerCase();   // "## Breakfast:" too, as menu.py
+      if (key in MEALS) { meal = key; other = false; continue; }
+      meal = null; other = true;
+    }
+    // One date per file. The editor rewrites it on save, so stray date lines are folded in (last wins, as on the Kindle).
+    const iso = line.match(ISO_DATE_RE);
+    if (iso) { m.date = iso[1]; continue; }
+    if (other) { m.tail.push(line); continue; }   // unknown sections are kept as they are, after Dinner
+    if (meal) {
+      const dish = line.match(DISH_RE);
+      if (dish) { const d = dish[1].replace(BULLET_RE, "").trim(); if (d) m.meals[meal].push(d); }
+      else if (st) m.extra[meal].push(line);       // the Kindle ignores it too: kept as is, never turned into a dish
+      continue;
+    }
+    if (st.startsWith("# ") && !m.title && st.slice(2).trim()) { m.title = st.slice(2).trim(); continue; }
+    const date = line.match(/^\s*date\s*:\s*(.*?)\s*$/i);
+    if (date) { m.date = date[1]; continue; }
+    if (st) m.head.push(line);
+  }
+  while (m.tail.length && !m.tail[m.tail.length - 1].trim()) m.tail.pop();
+  return m;
+}
+const menuDishes = (m, meal) => m.meals[meal].map((l) => l.replace(BULLET_RE, "").trim()).filter(Boolean);
+function writeMenu(m, day = isoDay()) {
+  const out = [];
+  if (m.title) out.push(`# ${m.title}`);
+  out.push(`Date: ${day}`, ...m.head);
+  for (const [meal, name] of Object.entries(MEALS)) out.push("", `## ${name}`, ...menuDishes(m, meal).map((d) => `- ${d}`), ...m.extra[meal]);
+  if (m.tail.length) out.push("", ...m.tail);
+  return out.join("\n") + "\n";
+}
+
 // ---- Shot maths: dose in, yield out (dose x ratio) ----
 const metaGet = (meta, key) => (meta.find(([k]) => k.toLowerCase() === key) || [])[1] || "";
 const num = (s) => { const m = String(s).replace(",", ".").match(/\d+(\.\d+)?/); return m ? parseFloat(m[0]) : NaN; };
@@ -475,17 +573,19 @@ function shotOf(meta) {
 }
 
 // ---- State ----
-const state = { todo: null, coffee: null, sha: {}, dirty: { todo: false, coffee: false }, saving: false };
+const CLEAN = () => ({ todo: false, coffee: false, menu: false });
+const state = { todo: null, coffee: null, menu: null, sha: {}, dirty: CLEAN(), saving: false };
+const anyDirty = () => Object.values(state.dirty).some(Boolean);
 function markDirty(which) { state.dirty[which] = true; showSavebar(); }
 function showSavebar(msg, isErr) {
-  const dirty = state.dirty.todo || state.dirty.coffee;
+  const dirty = anyDirty();
   $("savebar").classList.toggle("show", Boolean(dirty || msg));
   $("save").hidden = !dirty;
   $("save").disabled = state.saving;
   $("status").textContent = msg || (dirty ? "Unsaved changes" : "");
   $("status").className = isErr ? "err" : "";
 }
-window.addEventListener("beforeunload", (e) => { if (state.dirty.todo || state.dirty.coffee) e.preventDefault(); });
+window.addEventListener("beforeunload", (e) => { if (anyDirty()) e.preventDefault(); });
 
 // ---- To-do UI ----
 function renderTodo() {
@@ -682,29 +782,98 @@ $("bean-form").onsubmit = (e) => {
   renderCoffee(); markDirty("coffee");
 };
 
-// ---- Preview of the published image ----
-let previewUrl = null;
-async function loadPreview() {
-  const body = $("preview-body");
-  body.replaceChildren(el("p", { textContent: "Loading the latest image…" }));
-  try {
-    const blob = await api("contents/dashboard.png?ref=output", { raw: true });
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    previewUrl = URL.createObjectURL(blob);
-    body.replaceChildren(el("img", { src: previewUrl, alt: "The dashboard image the Kindle shows" }));
-  } catch (e) {
-    body.replaceChildren(el("p", { className: "err", textContent: `Couldn't load the image (${e.message}). Reload to try again.` }));
+// ---- Menu UI ----
+const fitMeal = (box) => { if (!CSS.supports("field-sizing", "content")) { box.style.height = "auto"; box.style.height = `${box.scrollHeight + 6}px`; } };
+function renderMenu() {
+  for (const meal of Object.keys(MEALS)) {
+    const box = $(`meal-${meal}`);
+    box.value = state.menu.meals[meal].join("\n");
+    requestAnimationFrame(() => fitMeal(box));
+  }
+  renderMenuNote();
+}
+function renderMenuNote() {
+  const n = Object.keys(MEALS).reduce((sum, meal) => sum + menuDishes(state.menu, meal).length, 0);
+  $("menu-count").textContent = n ? `${n} ${n === 1 ? "dish" : "dishes"}` : "";
+  // A plan saved on an earlier day: say so, since the Kindle shows it as today's menu once saved again.
+  const d = state.menu.date, ymd = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const old = n > 0 && d && d !== isoDay();
+  $("menu-old").hidden = !old;
+  if (old) {
+    const day = ymd ? new Date(+ymd[1], ymd[2] - 1, +ymd[3]).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }) : d;
+    $("menu-old").textContent = `This menu was planned for ${day}. Saving makes it today's, or clear it to start fresh.`;
   }
 }
+for (const meal of Object.keys(MEALS)) {
+  const box = $(`meal-${meal}`);
+  box.oninput = () => { state.menu.meals[meal] = box.value.split("\n"); fitMeal(box); renderMenuNote(); markDirty("menu"); };
+}
+$("menu-clear").onclick = () => {
+  if (!Object.keys(MEALS).some((meal) => menuDishes(state.menu, meal).length)) return;
+  for (const meal of Object.keys(MEALS)) state.menu.meals[meal] = [];
+  renderMenu(); markDirty("menu");
+};
+
+// ---- Preview of the published images: the Kindle's two pages ----
+const PAGES = {
+  dashboard: { file: "dashboard.png", alt: "The dashboard page the Kindle shows" },
+  menu: { file: "menu.png", alt: "The menu page the Kindle shows" },
+};
+const preview = { page: "dashboard", url: {}, err: {}, loading: {} };
+function showPage() {
+  const p = preview.page, e = preview.err[p], body = $("preview-body");
+  for (const k of Object.keys(PAGES)) $(`page-${k}`).setAttribute("aria-pressed", String(k === p));
+  if (preview.loading[p]) body.replaceChildren(el("p", { textContent: "Loading the latest image…" }));
+  else if (e && e.status === 404 && p === "menu") body.replaceChildren(el("p", { textContent: "No menu page yet. It appears here about a minute after you first save the menu." }));
+  else if (e) body.replaceChildren(el("p", { className: "err", textContent: `Couldn't load the image (${e.message}). Reload to try again.` }));
+  else if (preview.url[p]) body.replaceChildren(el("img", { src: preview.url[p], alt: PAGES[p].alt, draggable: false }));
+}
+async function loadPage(p) {
+  preview.loading[p] = true;
+  try {
+    const blob = await api(`contents/${PAGES[p].file}?ref=output`, { raw: true });
+    if (preview.url[p]) URL.revokeObjectURL(preview.url[p]);
+    preview.url[p] = URL.createObjectURL(blob); preview.err[p] = null;
+  } catch (e) {
+    preview.err[p] = e;
+  }
+  preview.loading[p] = false;
+  if (p === preview.page) showPage();
+}
+function loadPreview() {
+  for (const p of Object.keys(PAGES)) preview.loading[p] = true;
+  showPage();
+  return Promise.all(Object.keys(PAGES).map(loadPage));
+}
+function turnPage(page) { if (page !== preview.page) { preview.page = page; showPage(); } }
+for (const p of Object.keys(PAGES)) $(`page-${p}`).onclick = () => turnPage(p);
+// Swipe the preview like the Kindle: either direction turns to the other page.
+let swipe = null;
+$("preview-body").addEventListener("pointerdown", (e) => { swipe = { x: e.clientX, y: e.clientY }; });
+$("preview-body").addEventListener("pointercancel", () => { swipe = null; });
+$("preview-body").addEventListener("pointerup", (e) => {
+  if (!swipe) return;
+  const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+  swipe = null;
+  if (Math.abs(dx) > 40 && Math.abs(dx) > 1.5 * Math.abs(dy)) {
+    const pages = Object.keys(PAGES), i = pages.indexOf(preview.page);
+    turnPage(pages[(i + (dx < 0 ? 1 : pages.length - 1)) % pages.length]);
+  }
+});
 $("preview-reload").onclick = loadPreview;
 
 // ---- Load and save ----
 async function loadAll() {
-  const [todo, coffee] = await Promise.all([loadFile("todo.md"), loadFile("coffee.md")]);
+  const [todo, coffee, menu] = await Promise.all([
+    loadFile("todo.md"), loadFile("coffee.md"),
+    // menu.md is new: until the first save it doesn't exist, and saving then creates it.
+    loadFile("menu.md").catch((e) => { if (e.status === 404) return null; throw e; }),
+  ]);
   state.todo = parseTodo(todo.text); state.sha.todo = todo.sha;
   state.coffee = parseCoffee(coffee.text); state.sha.coffee = coffee.sha;
-  state.dirty = { todo: false, coffee: false };
-  renderTodo(); renderCoffee(); showSavebar();
+  state.menu = parseMenu(menu ? menu.text : ""); state.sha.menu = menu ? menu.sha : undefined;
+  state.dirty = CLEAN();
+  renderTodo(); renderCoffee(); renderMenu(); showSavebar();
 }
 $("save").onclick = async () => {
   state.saving = true; showSavebar("Saving…");
@@ -717,14 +886,22 @@ $("save").onclick = async () => {
       state.sha.coffee = await saveFile("coffee.md", writeCoffee(state.coffee), state.sha.coffee, "Update coffee from the web page");
       state.dirty.coffee = false;
     }
+    let menuSaved = false;
+    if (state.dirty.menu) {
+      const day = isoDay();
+      state.sha.menu = await saveFile("menu.md", writeMenu(state.menu, day), state.sha.menu, "Update menu from the web page");
+      state.dirty.menu = false; state.menu.date = day; menuSaved = true;
+      renderMenuNote();
+    }
     state.saving = false;
     showSavebar("Saved. The new image is ready in about a minute.");
     const cup = $("cup"); cup.classList.remove("saved"); void cup.getBoundingClientRect(); cup.classList.add("saved");
-    setTimeout(() => { if (!state.dirty.todo && !state.dirty.coffee) showSavebar(); }, 6000);
-    setTimeout(loadPreview, 75000);
+    setTimeout(() => { if (!anyDirty()) showSavebar(); }, 6000);
+    setTimeout(() => { if (menuSaved) turnPage("menu"); loadPreview(); }, 75000);
   } catch (e) {
     state.saving = false;
-    const msg = e.status === 409 || /does not match/i.test(e.message)
+    // 409: changed since loading. 422 "sha wasn't supplied": menu.md was created elsewhere after this page loaded.
+    const msg = e.status === 409 || /does not match/i.test(e.message) || (e.status === 422 && /sha/i.test(e.message))
       ? "Not saved: the file changed on GitHub since this page loaded. Reload the page and make the change again."
       : `Not saved: ${e.message}`;
     showSavebar(msg, true);
@@ -755,7 +932,7 @@ $("connect").onclick = () => {
 $("disconnect").onclick = (e) => {
   e.preventDefault();
   store.set("kd-token", ""); cfg.token = "";
-  state.dirty = { todo: false, coffee: false };
+  state.dirty = CLEAN();
   $("app").hidden = true; showSavebar();
   start();
 };

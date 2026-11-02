@@ -7,7 +7,9 @@ Dependencies: Pillow + Python stdlib only.
 Usage:
     python render/render.py --out out/dashboard.png
         [--weather-json render/sample_weather.json] [--now 2026-10-07T10:02]
-        [--todo path/to/todo.md] [--coffee path/to/coffee.md]
+        [--todo path/to/todo.md] [--coffee path/to/coffee.md] [--menu path/to/menu.md]
+
+Also writes out/menu.png, page 2 (render/menu.py): the day's meal plan as a menu card.
 """
 from __future__ import annotations
 
@@ -986,9 +988,30 @@ def render(now: datetime, wx: dict | None, todo_path: Path, coffee_path: Path) -
     ff = font("regular", 30)
     d.text((MARGIN, H - 56), "Weather: Open-Meteo.com", font=ff, fill=DARK, anchor="ls")
     d.text((W - MARGIN, H - 56), f"Updated {clock(now)}", font=ff, fill=DARK, anchor="rs")
+    page_dots(img, 1)
 
     # Quantize to the panel's 16 gray levels (multiples of 17).
     return img.point([min(255, int(v / 17 + 0.5) * 17) for v in range(256)])
+
+
+PAGE_DOTS_Y = 1628   # below the footer text, clear of the battery and status slots
+PAGES = 2
+
+
+def page_dots(img: Image.Image, page: int, total: int = PAGES) -> None:
+    """Page indicator centred under the footer: the current page filled, the others hollow."""
+    r, pitch, S = 8, 30, 4
+    w, h = pitch * (total - 1) + 2 * r + 4, 2 * r + 4
+    tile = Image.new("L", (w * S, h * S), WHITE)
+    td = ImageDraw.Draw(tile)
+    for i in range(total):
+        cx, cy = (r + 2 + i * pitch) * S, (r + 2) * S
+        box = [cx - r * S, cy - r * S, cx + r * S, cy + r * S]
+        if i + 1 == page:
+            td.ellipse(box, fill=BLACK)
+        else:
+            td.ellipse(box, outline=BLACK, width=3 * S)
+    img.paste(tile.resize((w, h), Image.LANCZOS), (round(W / 2 - w / 2), PAGE_DOTS_Y - h // 2))
 
 
 def quantize(im: Image.Image) -> Image.Image:
@@ -1063,6 +1086,7 @@ def main(argv=None) -> int:
     ap.add_argument("--now", help="override the clock (ISO 8601; naive = America/New_York)")
     ap.add_argument("--todo", default=str(ROOT / "todo.md"))
     ap.add_argument("--coffee", default=str(ROOT / "coffee.md"))
+    ap.add_argument("--menu", default=str(ROOT / "menu.md"))
     args = ap.parse_args(argv)
 
     now = parse_now(args.now)
@@ -1076,8 +1100,16 @@ def main(argv=None) -> int:
     import status  # noqa: E402  (imported here: status.py itself imports this module)
     status.pill(f"Offline. Updated {clock(now)}", "wifi-off", inverted=True).save(out.parent / "offline.png", optimize=True)
     render_night(now, wx).save(out.parent / "night.png", optimize=True)
+    # Page 2: the meal plan. Optional - a failure here must never cost the dashboard.
+    wrote = "stale.png, offline.png, night.png"
+    try:
+        import menu  # noqa: E402  (imported here: menu.py itself imports this module)
+        menu.render_menu(now, Path(args.menu)).save(out.parent / "menu.png", optimize=True)
+        wrote += ", menu.png"
+    except Exception as e:  # noqa: BLE001
+        warn(f"menu page failed ({e.__class__.__name__}: {e}); menu.png not written")
     (out.parent / "meta.json").write_text(json.dumps({"rendered_at": int(now.timestamp()), "label": clock(now)}) + "\n")
-    print(f"wrote {out} ({img.size[0]}x{img.size[1]}, mode {img.mode}) + stale.png, offline.png, night.png, meta.json")
+    print(f"wrote {out} ({img.size[0]}x{img.size[1]}, mode {img.mode}) + {wrote}, meta.json")
     return 0
 
 
