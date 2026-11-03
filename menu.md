@@ -1,15 +1,15 @@
 # Today's Menu
-Date: 2026-11-02
+Date: 2026-11-03
 
 ## Breakfast
-- Bread
+- Matcha Cake
 - Americano
 
 ## Lunch
-- Box Lunch at Law School
+- Oven Turkey Sandwich: with spring mix, mayo, and cheese
 
 ## Dinner
-- Golden Shrimp Tofu: with green peas, sweet corn
-- Green beans: with garlic, sausage
-- Scrambled Eggs: with scallions
+- Atlantic Salmon: with lemon and mushrooms
+- White Asparagus: with garlic and peppers
+- Cold black fungus: with soy sauce, balsamic vinegar, and scallions
 - Lady M Matcha Cake
