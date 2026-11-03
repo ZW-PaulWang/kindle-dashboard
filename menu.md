@@ -2,7 +2,7 @@
 Date: 2026-11-03
 
 ## Breakfast
-- Matcha Cake
+- Protein Bar
 - Americano
 
 ## Lunch
