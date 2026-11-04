@@ -5,7 +5,7 @@ Leave `Decaf:` empty to show only one bean.
 Each saved bean is a `##` heading followed by `- Key: value` lines.
 
 - Coffee: Verve Sermon
-- Decaf: Devocion - Decaf
+- Decaf: Cadefihuila
 
 ## Montecarlos
 - Grams: 19.5 g
