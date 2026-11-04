@@ -1,0 +1,827 @@
+2026-11-02 10:30:00 Test line from the Mac (setup check)
+[... 40733 earlier bytes of dashboard.log not sent]
+2026-10-16 08:35:00 Refreshing (battery 40%)
+2026-10-16 08:35:19 Downloaded 62006 bytes (rendered 8:35 AM)
+2026-10-16 08:35:19 Next refresh in 581s
+2026-10-16 08:45:00 Refreshing (battery 40%)
+2026-10-16 08:45:19 Downloaded 63999 bytes (rendered 8:45 AM)
+2026-10-16 08:45:19 Next refresh in 581s
+2026-10-16 08:55:00 Refreshing (battery 40%)
+2026-10-16 08:55:19 Downloaded 64066 bytes (rendered 8:55 AM)
+2026-10-16 08:55:19 Next refresh in 581s
+2026-10-16 09:05:00 Refreshing (battery 40%)
+2026-10-16 09:05:20 Downloaded 65178 bytes (rendered 9:05 AM)
+2026-10-16 09:05:20 Next refresh in 580s
+2026-10-16 09:15:00 Refreshing (battery 39%)
+2026-10-16 09:15:19 Downloaded 64459 bytes (rendered 9:15 AM)
+2026-10-16 09:15:19 Next refresh in 581s
+2026-10-16 09:25:00 Refreshing (battery 39%)
+2026-10-16 09:25:19 Downloaded 63898 bytes (rendered 9:25 AM)
+2026-10-16 09:25:19 Next refresh in 581s
+2026-10-16 09:35:00 Refreshing (battery 39%)
+2026-10-16 09:35:20 Downloaded 63308 bytes (rendered 9:35 AM)
+2026-10-16 09:35:20 Next refresh in 580s
+2026-10-16 09:45:00 Refreshing (battery 39%)
+2026-10-16 09:45:19 Downloaded 63307 bytes (rendered 9:45 AM)
+2026-10-16 09:45:19 Next refresh in 581s
+2026-10-16 09:55:00 Refreshing (battery 39%)
+2026-10-16 09:55:19 Downloaded 63278 bytes (rendered 9:55 AM)
+2026-10-16 09:55:19 Next refresh in 581s
+2026-10-16 10:05:00 Refreshing (battery 39%)
+2026-10-16 10:05:20 Downloaded 63597 bytes (rendered 10:05 AM)
+2026-10-16 10:05:20 Next refresh in 3580s
+2026-10-16 11:05:00 Refreshing (battery 38%)
+2026-10-16 11:05:19 Downloaded 61301 bytes (rendered 11:05 AM)
+2026-10-16 11:05:19 Next refresh in 3581s
+2026-10-16 12:05:00 Refreshing (battery 38%)
+2026-10-16 12:05:19 Downloaded 63506 bytes (rendered 12:05 PM)
+2026-10-16 12:05:19 Next refresh in 3581s
+2026-10-16 13:05:00 Refreshing (battery 37%)
+2026-10-16 13:05:19 Downloaded 61565 bytes (rendered 1:05 PM)
+2026-10-16 13:05:19 Next refresh in 3581s
+2026-10-16 14:05:00 Refreshing (battery 36%)
+2026-10-16 14:05:19 Downloaded 64019 bytes (rendered 2:05 PM)
+2026-10-16 14:05:20 Next refresh in 3580s
+2026-10-16 15:05:00 Refreshing (battery 35%)
+2026-10-16 15:05:19 Downloaded 62606 bytes (rendered 3:05 PM)
+2026-10-16 15:05:19 Next refresh in 3581s
+2026-10-16 16:05:00 Refreshing (battery 34%)
+2026-10-16 16:05:34 Downloaded 62452 bytes (rendered 4:05 PM)
+2026-10-16 16:05:35 Next refresh in 3565s
+2026-10-16 17:05:00 Refreshing (battery 34%)
+2026-10-16 17:05:19 Downloaded 61794 bytes (rendered 5:05 PM)
+2026-10-16 17:05:19 Next refresh in 3581s
+2026-10-16 18:05:00 Refreshing (battery 32%)
+2026-10-16 18:05:19 Downloaded 62347 bytes (rendered 6:05 PM)
+2026-10-16 18:05:19 Next refresh in 3581s
+2026-10-16 19:05:00 Refreshing (battery 32%)
+2026-10-16 19:05:20 Downloaded 61650 bytes (rendered 7:05 PM)
+2026-10-16 19:05:20 Next refresh in 3580s
+2026-10-16 20:05:00 Refreshing (battery 31%)
+2026-10-16 20:05:19 Downloaded 62059 bytes (rendered 8:05 PM)
+2026-10-16 20:05:19 Next refresh in 3581s
+2026-10-16 21:05:01 Refreshing (battery 30%)
+2026-10-16 21:05:19 Downloaded 43485 bytes (rendered 9:05 PM)
+2026-10-16 21:05:19 Next refresh in 3581s
+2026-10-16 22:05:00 Refreshing (battery 29%)
+2026-10-16 22:05:19 Downloaded 60713 bytes (rendered 10:05 PM)
+2026-10-16 22:05:19 Next refresh in 3581s
+2026-10-16 23:05:00 Refreshing (battery 29%)
+2026-10-16 23:05:18 Downloaded 59616 bytes (rendered 11:05 PM)
+2026-10-16 23:05:19 Next refresh in 3281s
+2026-10-17 00:00:00 Night: sleeping 21600s until 6:00
+2026-10-17 00:00:04 Deep sleep isn't available; idling with Wi-Fi off instead
+2026-10-17 06:00:01 Good morning (screen cleaned)
+2026-10-17 06:00:01 Refreshing (battery 26%)
+2026-10-17 06:00:22 Downloaded 60244 bytes (rendered 6:00 AM)
+2026-10-17 06:00:23 Next refresh in 277s
+2026-10-17 06:05:00 Refreshing (battery 25%)
+2026-10-17 06:05:18 Downloaded 60301 bytes (rendered 6:05 AM)
+2026-10-17 06:05:18 Next refresh in 3582s
+2026-10-17 07:05:00 Refreshing (battery 25%)
+2026-10-17 07:05:19 Downloaded 60705 bytes (rendered 7:05 AM)
+2026-10-17 07:05:19 Next refresh in 3581s
+2026-10-17 08:05:00 Refreshing (battery 24%)
+2026-10-17 08:05:19 Downloaded 61713 bytes (rendered 8:05 AM)
+2026-10-17 08:05:19 Next refresh in 3581s
+2026-10-17 09:05:00 Refreshing (battery 23%)
+2026-10-17 09:07:10 Couldn't start a render (HTTP 000): 
+curl: (28) Connection timed out after 60002 milliseconds
+curl: (28) Connection timed out after 60001 milliseconds
+curl: (28) Connection timed out after 60002 milliseconds
+2026-10-17 09:10:20 ERROR: download failed
+2026-10-17 09:10:20 Keeping the previous image
+2026-10-17 09:10:20 Next refresh in 3280s
+2026-10-17 10:05:00 Refreshing (battery 23%)
+2026-10-17 10:05:19 Downloaded 61377 bytes (rendered 10:05 AM)
+2026-10-17 10:05:19 Next refresh in 3581s
+2026-10-17 11:05:00 Refreshing (battery 22%)
+2026-10-17 11:05:19 Downloaded 61873 bytes (rendered 11:05 AM)
+2026-10-17 11:05:19 Next refresh in 3581s
+2026-10-17 12:05:00 Refreshing (battery 21%)
+2026-10-17 12:05:19 Downloaded 61821 bytes (rendered 12:05 PM)
+2026-10-17 12:05:19 Next refresh in 3581s
+2026-10-17 13:05:00 Refreshing (battery 20%)
+2026-10-17 13:05:19 Downloaded 61657 bytes (rendered 1:05 PM)
+2026-10-17 13:05:19 Next refresh in 3581s
+2026-10-17 14:05:00 Refreshing (battery 19%)
+2026-10-17 14:05:18 Downloaded 61721 bytes (rendered 2:05 PM)
+2026-10-17 14:05:19 Next refresh in 3581s
+2026-10-17 15:05:00 Refreshing (battery 18%)
+2026-10-17 15:05:19 Downloaded 62122 bytes (rendered 3:05 PM)
+2026-10-17 15:05:19 Next refresh in 3581s
+2026-10-17 16:05:00 Refreshing (battery 17%)
+2026-10-17 16:05:18 Downloaded 61001 bytes (rendered 4:05 PM)
+2026-10-17 16:05:19 Next refresh in 3581s
+2026-10-17 17:05:00 Refreshing (battery 16%)
+2026-10-17 17:05:19 Downloaded 60162 bytes (rendered 5:05 PM)
+2026-10-17 17:05:19 Next refresh in 3581s
+2026-10-17 18:05:00 Refreshing (battery 16%)
+2026-10-17 18:05:19 Downloaded 61329 bytes (rendered 6:05 PM)
+2026-10-17 18:05:19 Next refresh in 3581s
+2026-10-17 19:05:00 Refreshing (battery 15%)
+2026-10-17 19:05:19 Downloaded 60786 bytes (rendered 7:05 PM)
+2026-10-17 19:05:19 Next refresh in 3581s
+2026-10-17 20:05:00 Refreshing (battery 14%)
+2026-10-17 20:05:19 Downloaded 61013 bytes (rendered 8:05 PM)
+2026-10-17 20:05:19 Next refresh in 3581s
+2026-10-17 21:05:00 Refreshing (battery 13%)
+2026-10-17 21:05:18 Downloaded 61902 bytes (rendered 9:05 PM)
+2026-10-17 21:05:19 Next refresh in 3581s
+2026-10-18 17:31:27 Starting dashboard (pid 13109)
+lab126_gui stop/waiting
+2026-10-18 17:31:32 Refreshing (battery 96%)
+2026-10-18 17:31:51 Downloaded 59875 bytes (rendered 5:31 PM)
+2026-10-18 17:31:53 Watching /dev/input/event1 (pt_mt) for a double tap
+2026-10-18 17:31:53 Next refresh in 1987s
+2026-10-18 18:05:00 Refreshing (battery 96%)
+2026-10-18 18:05:19 Downloaded 59360 bytes (rendered 6:05 PM)
+2026-10-18 18:05:19 Next refresh in 3581s
+2026-10-18 19:05:00 Refreshing (battery 95%)
+2026-10-18 19:05:19 Downloaded 59739 bytes (rendered 7:05 PM)
+2026-10-18 19:05:19 Next refresh in 3581s
+2026-10-18 20:05:00 Refreshing (battery 95%)
+2026-10-18 20:05:19 Downloaded 59585 bytes (rendered 8:05 PM)
+2026-10-18 20:05:19 Next refresh in 3581s
+2026-10-18 21:05:00 Refreshing (battery 94%)
+2026-10-18 21:05:20 Downloaded 60310 bytes (rendered 9:05 PM)
+2026-10-18 21:05:21 Next refresh in 3579s
+2026-10-18 22:05:00 Refreshing (battery 93%)
+2026-10-18 22:05:19 Downloaded 59681 bytes (rendered 10:05 PM)
+2026-10-18 22:05:19 Next refresh in 3581s
+2026-10-18 23:05:00 Refreshing (battery 92%)
+2026-10-18 23:05:19 Downloaded 59792 bytes (rendered 11:05 PM)
+2026-10-18 23:05:19 Next refresh in 3281s
+2026-10-19 00:00:00 Night: sleeping 21600s until 6:00
+2026-10-19 00:00:04 Deep sleep isn't available; idling with Wi-Fi off instead
+2026-10-19 06:00:01 Good morning (screen cleaned)
+2026-10-19 06:00:01 Refreshing (battery 90%)
+2026-10-19 06:00:23 Downloaded 62202 bytes (rendered 6:00 AM)
+2026-10-19 06:00:23 Next refresh in 277s
+2026-10-19 06:05:00 Refreshing (battery 89%)
+2026-10-19 06:05:19 Downloaded 62010 bytes (rendered 6:05 AM)
+2026-10-19 06:05:19 Next refresh in 3581s
+2026-10-19 07:05:00 Refreshing (battery 89%)
+2026-10-19 07:05:19 Downloaded 61988 bytes (rendered 7:05 AM)
+2026-10-19 07:05:19 Next refresh in 581s
+2026-10-19 07:15:00 Refreshing (battery 89%)
+2026-10-19 07:15:19 Downloaded 62196 bytes (rendered 7:15 AM)
+2026-10-19 07:15:20 Next refresh in 580s
+2026-10-19 07:25:00 Refreshing (battery 88%)
+2026-10-19 07:25:19 Downloaded 62271 bytes (rendered 7:25 AM)
+2026-10-19 07:25:19 Next refresh in 581s
+2026-10-19 07:35:00 Refreshing (battery 88%)
+2026-10-19 07:35:19 Downloaded 62492 bytes (rendered 7:35 AM)
+2026-10-19 07:35:19 Next refresh in 581s
+2026-10-19 07:45:00 Refreshing (battery 88%)
+2026-10-19 07:45:19 Downloaded 62719 bytes (rendered 7:45 AM)
+2026-10-19 07:45:19 Next refresh in 581s
+2026-10-19 07:55:00 Refreshing (battery 88%)
+2026-10-19 07:55:19 Downloaded 62751 bytes (rendered 7:55 AM)
+2026-10-19 07:55:19 Next refresh in 581s
+2026-10-19 08:05:00 Refreshing (battery 88%)
+2026-10-19 08:05:19 Downloaded 63026 bytes (rendered 8:05 AM)
+2026-10-19 08:05:20 Next refresh in 581s
+2026-10-19 08:15:01 Refreshing (battery 88%)
+2026-10-19 08:15:20 Downloaded 62858 bytes (rendered 8:15 AM)
+2026-10-19 08:15:20 Next refresh in 580s
+2026-10-19 08:25:00 Refreshing (battery 88%)
+2026-10-19 08:25:18 Downloaded 62795 bytes (rendered 8:25 AM)
+2026-10-19 08:25:19 Next refresh in 581s
+2026-10-19 08:35:00 Refreshing (battery 88%)
+2026-10-19 08:35:19 Downloaded 63694 bytes (rendered 8:35 AM)
+2026-10-19 08:35:19 Next refresh in 581s
+2026-10-19 08:45:00 Refreshing (battery 88%)
+2026-10-19 08:45:19 Downloaded 63018 bytes (rendered 8:45 AM)
+2026-10-19 08:45:19 Next refresh in 581s
+2026-10-19 08:55:00 Refreshing (battery 87%)
+2026-10-19 08:55:19 Downloaded 63509 bytes (rendered 8:55 AM)
+2026-10-19 08:55:19 Next refresh in 581s
+2026-10-19 09:05:00 Refreshing (battery 87%)
+2026-10-19 09:05:19 Downloaded 63499 bytes (rendered 9:05 AM)
+2026-10-19 09:05:19 Next refresh in 581s
+2026-10-19 09:15:00 Refreshing (battery 87%)
+2026-10-19 09:15:19 Downloaded 62691 bytes (rendered 9:15 AM)
+2026-10-19 09:15:20 Next refresh in 580s
+2026-10-19 09:25:00 Refreshing (battery 87%)
+2026-10-19 09:25:19 Downloaded 62660 bytes (rendered 9:25 AM)
+2026-10-19 09:25:19 Next refresh in 581s
+2026-10-19 09:35:00 Refreshing (battery 87%)
+2026-10-19 09:35:19 Downloaded 61346 bytes (rendered 9:35 AM)
+2026-10-19 09:35:19 Next refresh in 581s
+2026-10-19 09:45:00 Refreshing (battery 87%)
+2026-10-19 09:45:19 Downloaded 62255 bytes (rendered 9:45 AM)
+2026-10-19 09:45:19 Next refresh in 581s
+2026-10-19 09:55:00 Refreshing (battery 87%)
+2026-10-19 09:55:19 Downloaded 62272 bytes (rendered 9:55 AM)
+2026-10-19 09:55:19 Next refresh in 581s
+2026-10-19 10:05:00 Refreshing (battery 87%)
+2026-10-19 10:05:20 Downloaded 61652 bytes (rendered 10:05 AM)
+2026-10-19 10:05:20 Next refresh in 3580s
+2026-10-19 11:05:00 Refreshing (battery 86%)
+2026-10-19 11:05:19 Downloaded 54543 bytes (rendered 11:05 AM)
+2026-10-19 11:05:19 Next refresh in 3581s
+2026-10-19 12:05:00 Refreshing (battery 85%)
+2026-10-19 12:05:19 Downloaded 53912 bytes (rendered 12:05 PM)
+2026-10-19 12:05:19 Next refresh in 3581s
+2026-10-19 13:05:00 Refreshing (battery 84%)
+2026-10-19 13:05:19 Downloaded 54271 bytes (rendered 1:05 PM)
+2026-10-19 13:05:19 Next refresh in 3581s
+2026-10-19 14:05:00 Refreshing (battery 84%)
+2026-10-19 14:05:19 Downloaded 54354 bytes (rendered 2:05 PM)
+2026-10-19 14:05:19 Next refresh in 3581s
+2026-10-19 15:05:00 Refreshing (battery 83%)
+2026-10-19 15:05:19 Downloaded 53892 bytes (rendered 3:05 PM)
+2026-10-19 15:05:19 Next refresh in 3581s
+2026-10-19 16:05:00 Refreshing (battery 82%)
+2026-10-19 16:05:19 Downloaded 54387 bytes (rendered 4:05 PM)
+2026-10-19 16:05:19 Next refresh in 3581s
+2026-10-19 17:05:00 Refreshing (battery 82%)
+2026-10-19 17:05:19 Downloaded 53373 bytes (rendered 5:05 PM)
+2026-10-19 17:05:19 Next refresh in 3581s
+2026-10-19 18:05:00 Refreshing (battery 81%)
+2026-10-19 18:05:19 Downloaded 52638 bytes (rendered 6:05 PM)
+2026-10-19 18:05:19 Next refresh in 3581s
+2026-10-19 19:05:00 Refreshing (battery 80%)
+2026-10-19 19:05:19 Downloaded 53091 bytes (rendered 7:05 PM)
+2026-10-19 19:05:19 Next refresh in 3581s
+2026-10-19 20:05:00 Refreshing (battery 79%)
+2026-10-19 20:05:20 Downloaded 52452 bytes (rendered 8:05 PM)
+2026-10-19 20:05:20 Next refresh in 3580s
+2026-10-19 21:05:00 Refreshing (battery 79%)
+2026-10-19 21:05:19 Downloaded 52382 bytes (rendered 9:05 PM)
+2026-10-19 21:05:19 Next refresh in 3581s
+2026-10-19 22:05:00 Refreshing (battery 78%)
+2026-10-19 22:05:24 Downloaded 52205 bytes (rendered 10:05 PM)
+2026-10-19 22:05:24 Next refresh in 3576s
+2026-10-19 23:05:00 Refreshing (battery 77%)
+2026-10-19 23:05:18 Downloaded 52794 bytes (rendered 11:05 PM)
+2026-10-19 23:05:19 Next refresh in 3281s
+2026-10-20 00:00:00 Night: sleeping 21600s until 6:00
+2026-10-20 00:00:04 Deep sleep isn't available; idling with Wi-Fi off instead
+2026-10-20 06:00:01 Good morning (screen cleaned)
+2026-10-20 06:00:01 Refreshing (battery 74%)
+2026-10-20 06:00:39 Downloaded 57798 bytes (rendered 6:00 AM)
+2026-10-20 06:00:39 Next refresh in 261s
+2026-10-20 06:05:00 Refreshing (battery 74%)
+2026-10-20 06:05:19 Downloaded 57978 bytes (rendered 6:05 AM)
+2026-10-20 06:05:20 Next refresh in 3580s
+2026-10-20 07:05:00 Refreshing (battery 74%)
+2026-10-20 07:05:19 Downloaded 57727 bytes (rendered 7:05 AM)
+2026-10-20 07:05:19 Next refresh in 581s
+2026-10-20 07:15:00 Refreshing (battery 73%)
+2026-10-20 07:15:19 Downloaded 58142 bytes (rendered 7:15 AM)
+2026-10-20 07:15:20 Next refresh in 580s
+2026-10-20 07:25:00 Refreshing (battery 73%)
+2026-10-20 07:25:19 Downloaded 58552 bytes (rendered 7:25 AM)
+2026-10-20 07:25:19 Next refresh in 581s
+2026-10-20 07:35:00 Refreshing (battery 73%)
+2026-10-20 07:35:19 Downloaded 59084 bytes (rendered 7:35 AM)
+2026-10-20 07:35:19 Next refresh in 581s
+2026-10-20 07:45:00 Refreshing (battery 73%)
+2026-10-20 07:45:19 Downloaded 59218 bytes (rendered 7:45 AM)
+2026-10-20 07:45:20 Next refresh in 580s
+2026-10-20 07:55:00 Refreshing (battery 73%)
+2026-10-20 07:55:19 Downloaded 58821 bytes (rendered 7:55 AM)
+2026-10-20 07:55:19 Next refresh in 581s
+2026-10-20 08:05:00 Refreshing (battery 73%)
+2026-10-20 08:05:19 Downloaded 59353 bytes (rendered 8:05 AM)
+2026-10-20 08:05:19 Next refresh in 581s
+2026-10-20 08:15:00 Refreshing (battery 73%)
+2026-10-20 08:15:19 Downloaded 58806 bytes (rendered 8:15 AM)
+2026-10-20 08:15:20 Next refresh in 580s
+2026-10-20 08:25:00 Refreshing (battery 73%)
+2026-10-20 08:25:19 Downloaded 58811 bytes (rendered 8:25 AM)
+2026-10-20 08:25:19 Next refresh in 581s
+2026-10-20 08:35:00 Refreshing (battery 72%)
+2026-10-20 08:35:20 Downloaded 58996 bytes (rendered 8:35 AM)
+2026-10-20 08:35:20 Next refresh in 580s
+2026-10-20 08:45:00 Refreshing (battery 72%)
+2026-10-20 08:45:19 Downloaded 57470 bytes (rendered 8:45 AM)
+2026-10-20 08:45:19 Next refresh in 581s
+2026-10-20 08:55:00 Refreshing (battery 72%)
+2026-10-20 08:55:19 Downloaded 56948 bytes (rendered 8:55 AM)
+2026-10-20 08:55:19 Next refresh in 581s
+2026-10-20 09:05:00 Refreshing (battery 72%)
+2026-10-20 09:05:20 Downloaded 57280 bytes (rendered 9:05 AM)
+2026-10-20 09:05:20 Next refresh in 580s
+2026-10-20 09:15:00 Refreshing (battery 72%)
+2026-10-20 09:15:19 Downloaded 58644 bytes (rendered 9:15 AM)
+2026-10-20 09:15:20 Next refresh in 580s
+2026-10-20 09:25:00 Refreshing (battery 72%)
+2026-10-20 09:25:19 Downloaded 58270 bytes (rendered 9:25 AM)
+2026-10-20 09:25:19 Next refresh in 581s
+2026-10-20 09:35:00 Refreshing (battery 71%)
+2026-10-20 09:35:20 Downloaded 59188 bytes (rendered 9:35 AM)
+2026-10-20 09:35:20 Next refresh in 580s
+2026-10-20 09:45:00 Refreshing (battery 71%)
+2026-10-20 09:45:19 Downloaded 59576 bytes (rendered 9:45 AM)
+2026-10-20 09:45:19 Next refresh in 581s
+2026-10-20 09:55:00 Refreshing (battery 71%)
+2026-10-20 09:55:20 Downloaded 58818 bytes (rendered 9:55 AM)
+2026-10-20 09:55:20 Next refresh in 580s
+2026-10-20 10:05:00 Refreshing (battery 71%)
+2026-10-20 10:05:21 Downloaded 58428 bytes (rendered 10:05 AM)
+2026-10-20 10:05:21 Next refresh in 3579s
+2026-10-20 11:05:00 Refreshing (battery 71%)
+2026-10-20 11:05:20 Downloaded 55144 bytes (rendered 11:05 AM)
+2026-10-20 11:05:20 Next refresh in 3580s
+2026-10-20 12:05:00 Refreshing (battery 70%)
+2026-10-20 12:05:20 Downloaded 54148 bytes (rendered 12:05 PM)
+2026-10-20 12:05:20 Next refresh in 3580s
+2026-10-20 13:05:00 Refreshing (battery 69%)
+2026-10-20 13:05:20 Downloaded 54837 bytes (rendered 1:05 PM)
+2026-10-20 13:05:20 Next refresh in 3580s
+2026-10-20 14:05:01 Refreshing (battery 68%)
+2026-10-20 14:05:20 Downloaded 54553 bytes (rendered 2:05 PM)
+2026-10-20 14:05:20 Next refresh in 3580s
+2026-10-20 15:05:00 Refreshing (battery 67%)
+2026-10-20 15:05:19 Downloaded 56922 bytes (rendered 3:05 PM)
+2026-10-20 15:05:19 Next refresh in 3581s
+2026-10-20 16:05:00 Refreshing (battery 67%)
+2026-10-20 16:05:19 Downloaded 56006 bytes (rendered 4:05 PM)
+2026-10-20 16:05:19 Next refresh in 3581s
+2026-10-20 17:05:00 Refreshing (battery 66%)
+2026-10-20 17:05:19 Downloaded 54094 bytes (rendered 5:05 PM)
+2026-10-20 17:05:19 Next refresh in 3581s
+2026-10-20 18:05:00 Refreshing (battery 65%)
+2026-10-20 18:05:20 Downloaded 54778 bytes (rendered 6:05 PM)
+2026-10-20 18:05:20 Next refresh in 3580s
+2026-10-20 19:05:01 Refreshing (battery 64%)
+2026-10-20 19:05:20 Downloaded 54718 bytes (rendered 7:05 PM)
+2026-10-20 19:05:20 Next refresh in 3580s
+2026-10-20 20:05:00 Refreshing (battery 64%)
+2026-10-20 20:05:19 Downloaded 55607 bytes (rendered 8:05 PM)
+2026-10-20 20:05:19 Next refresh in 3581s
+2026-10-20 21:05:00 Refreshing (battery 63%)
+2026-10-20 21:05:19 Downloaded 55391 bytes (rendered 9:05 PM)
+2026-10-20 21:05:19 Next refresh in 3581s
+2026-10-20 22:05:00 Refreshing (battery 62%)
+2026-10-20 22:05:19 Downloaded 51973 bytes (rendered 10:05 PM)
+2026-10-20 22:05:19 Next refresh in 3581s
+2026-10-20 23:05:00 Refreshing (battery 61%)
+2026-10-20 23:05:19 Downloaded 53168 bytes (rendered 11:05 PM)
+2026-10-20 23:05:19 Next refresh in 3281s
+2026-10-21 00:00:00 Night: sleeping 21600s until 6:00
+2026-10-21 00:00:04 Deep sleep isn't available; idling with Wi-Fi off instead
+2026-10-21 06:00:01 Good morning (screen cleaned)
+2026-10-21 06:00:01 Refreshing (battery 59%)
+2026-10-21 06:00:23 Downloaded 41841 bytes (rendered 6:00 AM)
+2026-10-21 06:00:23 Next refresh in 277s
+2026-10-21 06:05:00 Refreshing (battery 58%)
+2026-10-21 06:05:19 Downloaded 58367 bytes (rendered 6:05 AM)
+2026-10-21 06:05:20 Next refresh in 3580s
+2026-10-21 07:05:00 Refreshing (battery 58%)
+2026-10-21 07:05:20 Downloaded 60050 bytes (rendered 7:05 AM)
+2026-10-21 07:05:20 Next refresh in 580s
+2026-10-21 07:15:00 Refreshing (battery 57%)
+2026-10-21 07:15:19 Downloaded 59869 bytes (rendered 7:15 AM)
+2026-10-21 07:15:20 Next refresh in 580s
+2026-10-21 07:25:00 Refreshing (battery 57%)
+2026-10-21 07:25:19 Downloaded 60077 bytes (rendered 7:25 AM)
+2026-10-21 07:25:19 Next refresh in 581s
+2026-10-21 07:35:00 Refreshing (battery 57%)
+2026-10-21 07:35:19 Downloaded 60040 bytes (rendered 7:35 AM)
+2026-10-21 07:35:19 Next refresh in 581s
+2026-10-21 07:45:00 Refreshing (battery 57%)
+2026-10-21 07:45:19 Downloaded 60028 bytes (rendered 7:45 AM)
+2026-10-21 07:45:20 Next refresh in 580s
+2026-10-21 07:55:00 Refreshing (battery 57%)
+2026-10-21 07:55:19 Downloaded 59932 bytes (rendered 7:55 AM)
+2026-10-21 07:55:19 Next refresh in 581s
+2026-10-21 08:05:00 Refreshing (battery 56%)
+2026-10-21 08:05:19 Downloaded 58324 bytes (rendered 8:05 AM)
+2026-10-21 08:05:20 Next refresh in 580s
+2026-10-21 08:15:00 Refreshing (battery 56%)
+2026-10-21 08:15:19 Downloaded 59077 bytes (rendered 8:15 AM)
+2026-10-21 08:15:20 Next refresh in 580s
+2026-10-21 08:25:00 Refreshing (battery 56%)
+2026-10-21 08:25:19 Downloaded 59426 bytes (rendered 8:25 AM)
+2026-10-21 08:25:19 Next refresh in 581s
+2026-10-21 08:35:00 Refreshing (battery 56%)
+2026-10-21 08:35:19 Downloaded 60973 bytes (rendered 8:35 AM)
+2026-10-21 08:35:19 Next refresh in 581s
+2026-10-21 08:45:00 Refreshing (battery 56%)
+2026-10-21 08:45:20 Downloaded 59770 bytes (rendered 8:45 AM)
+2026-10-21 08:45:20 Next refresh in 580s
+2026-10-21 08:55:00 Refreshing (battery 56%)
+2026-10-21 08:55:19 Downloaded 59921 bytes (rendered 8:55 AM)
+2026-10-21 08:55:19 Next refresh in 581s
+2026-10-21 09:05:00 Refreshing (battery 55%)
+2026-10-21 09:05:20 Downloaded 60129 bytes (rendered 9:05 AM)
+2026-10-21 09:05:20 Next refresh in 580s
+2026-10-21 09:15:00 Refreshing (battery 55%)
+2026-10-21 09:15:19 Downloaded 59261 bytes (rendered 9:15 AM)
+2026-10-21 09:15:19 Next refresh in 581s
+2026-10-21 09:25:00 Refreshing (battery 55%)
+2026-10-21 09:25:20 Downloaded 60111 bytes (rendered 9:25 AM)
+2026-10-21 09:25:20 Next refresh in 580s
+2026-10-21 09:35:00 Refreshing (battery 55%)
+2026-10-21 09:35:19 Downloaded 61144 bytes (rendered 9:35 AM)
+2026-10-21 09:35:20 Next refresh in 580s
+2026-10-21 09:45:00 Refreshing (battery 55%)
+2026-10-21 09:45:19 Downloaded 61452 bytes (rendered 9:45 AM)
+2026-10-21 09:45:19 Next refresh in 581s
+2026-10-21 09:55:00 Refreshing (battery 55%)
+2026-10-21 09:55:20 Downloaded 61772 bytes (rendered 9:55 AM)
+2026-10-21 09:55:20 Next refresh in 580s
+2026-10-21 10:05:00 Refreshing (battery 54%)
+2026-10-21 10:05:19 Downloaded 61510 bytes (rendered 10:05 AM)
+2026-10-21 10:05:20 Next refresh in 3580s
+2026-10-21 11:05:00 Refreshing (battery 54%)
+2026-10-21 11:05:19 Downloaded 56332 bytes (rendered 11:05 AM)
+2026-10-21 11:05:20 Next refresh in 3580s
+2026-10-21 12:05:00 Refreshing (battery 53%)
+2026-10-21 12:05:20 Downloaded 56443 bytes (rendered 12:05 PM)
+2026-10-21 12:05:20 Next refresh in 3580s
+2026-10-21 13:05:00 Refreshing (battery 53%)
+2026-10-21 13:05:36 Downloaded 54810 bytes (rendered 1:05 PM)
+2026-10-21 13:05:36 Next refresh in 3564s
+2026-10-21 14:05:00 Refreshing (battery 52%)
+2026-10-21 14:05:20 Downloaded 54472 bytes (rendered 2:05 PM)
+2026-10-21 14:05:20 Next refresh in 3580s
+2026-10-21 15:05:00 Refreshing (battery 51%)
+2026-10-21 15:05:21 Downloaded 54739 bytes (rendered 3:05 PM)
+2026-10-21 15:05:21 Next refresh in 3579s
+2026-10-21 16:05:00 Refreshing (battery 51%)
+2026-10-21 16:05:20 Downloaded 54982 bytes (rendered 4:05 PM)
+2026-10-21 16:05:20 Next refresh in 3580s
+2026-10-21 17:05:00 Refreshing (battery 50%)
+2026-10-21 17:05:19 Downloaded 55198 bytes (rendered 5:05 PM)
+2026-10-21 17:05:19 Next refresh in 3581s
+2026-10-21 18:05:00 Refreshing (battery 49%)
+2026-10-21 18:05:19 Downloaded 55167 bytes (rendered 6:05 PM)
+2026-10-21 18:05:19 Next refresh in 3581s
+2026-10-21 19:05:00 Refreshing (battery 48%)
+2026-10-21 19:05:19 Downloaded 55095 bytes (rendered 7:05 PM)
+2026-10-21 19:05:19 Next refresh in 3581s
+2026-10-21 20:05:00 Refreshing (battery 48%)
+2026-10-21 20:05:35 Downloaded 54581 bytes (rendered 8:05 PM)
+2026-10-21 20:05:35 Next refresh in 3565s
+2026-10-21 21:05:01 Refreshing (battery 47%)
+2026-10-21 21:05:36 Downloaded 55302 bytes (rendered 9:05 PM)
+2026-10-21 21:05:36 Next refresh in 3564s
+2026-10-21 22:05:01 Refreshing (battery 46%)
+2026-10-21 22:05:20 Downloaded 54836 bytes (rendered 10:05 PM)
+2026-10-21 22:05:20 Next refresh in 3580s
+2026-10-21 23:05:00 Refreshing (battery 45%)
+2026-10-21 23:05:19 Downloaded 54800 bytes (rendered 11:05 PM)
+2026-10-21 23:05:19 Next refresh in 3281s
+2026-10-22 00:00:01 Night: sleeping 21599s until 6:00
+2026-10-22 00:00:04 Deep sleep isn't available; idling with Wi-Fi off instead
+2026-10-22 06:00:01 Good morning (screen cleaned)
+2026-10-22 06:00:01 Refreshing (battery 43%)
+2026-10-22 06:00:23 Downloaded 59574 bytes (rendered 6:00 AM)
+2026-10-22 06:00:24 Next refresh in 276s
+2026-10-22 06:05:00 Refreshing (battery 41%)
+2026-10-22 06:05:19 Downloaded 59399 bytes (rendered 6:05 AM)
+2026-10-22 06:05:19 Next refresh in 3581s
+2026-10-22 07:05:00 Refreshing (battery 41%)
+2026-10-22 07:05:19 Downloaded 59829 bytes (rendered 7:05 AM)
+2026-10-22 07:05:19 Next refresh in 581s
+2026-10-22 07:15:00 Refreshing (battery 41%)
+2026-10-22 07:15:19 Downloaded 59778 bytes (rendered 7:15 AM)
+2026-10-22 07:15:19 Next refresh in 581s
+2026-10-22 07:25:00 Refreshing (battery 41%)
+2026-10-22 07:25:19 Downloaded 60198 bytes (rendered 7:25 AM)
+2026-10-22 07:25:19 Next refresh in 581s
+2026-10-22 07:35:01 Refreshing (battery 41%)
+2026-10-22 07:35:20 Downloaded 59439 bytes (rendered 7:35 AM)
+2026-10-22 07:35:20 Next refresh in 580s
+2026-10-22 07:45:00 Refreshing (battery 41%)
+2026-10-22 07:45:19 Downloaded 59774 bytes (rendered 7:45 AM)
+2026-10-22 07:45:20 Next refresh in 581s
+2026-10-22 07:55:01 Refreshing (battery 40%)
+2026-10-22 07:55:20 Downloaded 59808 bytes (rendered 7:55 AM)
+2026-10-22 07:55:20 Next refresh in 580s
+2026-10-22 08:05:00 Refreshing (battery 40%)
+2026-10-22 08:05:20 Downloaded 58676 bytes (rendered 8:05 AM)
+2026-10-22 08:05:20 Next refresh in 580s
+2026-10-22 08:15:00 Refreshing (battery 40%)
+2026-10-22 08:15:20 Downloaded 58810 bytes (rendered 8:15 AM)
+2026-10-22 08:15:20 Next refresh in 580s
+2026-10-22 08:25:00 Refreshing (battery 40%)
+2026-10-22 08:25:19 Downloaded 58954 bytes (rendered 8:25 AM)
+2026-10-22 08:25:19 Next refresh in 581s
+2026-10-22 08:35:00 Refreshing (battery 40%)
+2026-10-22 08:35:20 Downloaded 60419 bytes (rendered 8:35 AM)
+2026-10-22 08:35:20 Next refresh in 580s
+2026-10-22 08:45:00 Refreshing (battery 39%)
+2026-10-22 08:45:34 Downloaded 59356 bytes (rendered 8:45 AM)
+2026-10-22 08:45:35 Next refresh in 565s
+2026-10-22 08:55:00 Refreshing (battery 39%)
+2026-10-22 08:55:19 Downloaded 59005 bytes (rendered 8:55 AM)
+2026-10-22 08:55:19 Next refresh in 581s
+2026-10-22 09:05:00 Refreshing (battery 39%)
+2026-10-22 09:05:21 Downloaded 60411 bytes (rendered 9:05 AM)
+2026-10-22 09:05:21 Next refresh in 579s
+2026-10-22 09:15:00 Refreshing (battery 39%)
+2026-10-22 09:15:34 Downloaded 60071 bytes (rendered 9:15 AM)
+2026-10-22 09:15:35 Next refresh in 565s
+2026-10-22 09:25:00 Refreshing (battery 39%)
+2026-10-22 09:25:19 Downloaded 60277 bytes (rendered 9:25 AM)
+2026-10-22 09:25:19 Next refresh in 581s
+2026-10-22 09:35:00 Refreshing (battery 39%)
+2026-10-22 09:35:20 Downloaded 61281 bytes (rendered 9:35 AM)
+2026-10-22 09:35:20 Next refresh in 580s
+2026-10-22 09:45:00 Refreshing (battery 39%)
+2026-10-22 09:45:19 Downloaded 61190 bytes (rendered 9:45 AM)
+2026-10-22 09:45:20 Next refresh in 580s
+2026-10-22 09:55:00 Refreshing (battery 38%)
+2026-10-22 09:55:19 Downloaded 61023 bytes (rendered 9:55 AM)
+2026-10-22 09:55:19 Next refresh in 581s
+2026-10-22 10:05:00 Refreshing (battery 38%)
+2026-10-22 10:05:20 Downloaded 59664 bytes (rendered 10:05 AM)
+2026-10-22 10:05:20 Next refresh in 3580s
+2026-10-22 11:05:01 Refreshing (battery 38%)
+2026-10-22 11:05:22 Downloaded 55701 bytes (rendered 11:05 AM)
+2026-10-22 11:05:22 Next refresh in 3578s
+2026-10-22 12:05:00 Refreshing (battery 37%)
+2026-10-22 12:05:35 Downloaded 56453 bytes (rendered 12:05 PM)
+2026-10-22 12:05:36 Next refresh in 3564s
+2026-10-22 13:05:00 Refreshing (battery 36%)
+2026-10-22 13:05:19 Downloaded 55542 bytes (rendered 1:05 PM)
+2026-10-22 13:05:19 Next refresh in 3581s
+2026-10-22 14:05:00 Refreshing (battery 36%)
+2026-10-22 14:05:19 Downloaded 55527 bytes (rendered 2:05 PM)
+2026-10-22 14:05:20 Next refresh in 3580s
+2026-10-22 15:05:00 Refreshing (battery 35%)
+2026-10-22 15:05:20 Downloaded 55938 bytes (rendered 3:05 PM)
+2026-10-22 15:05:20 Next refresh in 3580s
+2026-10-22 16:05:00 Refreshing (battery 33%)
+2026-10-22 16:05:20 Downloaded 56102 bytes (rendered 4:05 PM)
+2026-10-22 16:05:20 Next refresh in 3580s
+2026-10-22 17:05:00 Refreshing (battery 33%)
+2026-10-22 17:05:19 Downloaded 56543 bytes (rendered 5:05 PM)
+2026-10-22 17:05:20 Next refresh in 3580s
+2026-10-22 18:05:00 Refreshing (battery 33%)
+2026-10-22 18:05:19 Downloaded 54854 bytes (rendered 6:05 PM)
+2026-10-22 18:05:19 Next refresh in 3581s
+2026-10-22 19:05:00 Refreshing (battery 32%)
+2026-10-22 19:05:19 Downloaded 55434 bytes (rendered 7:05 PM)
+2026-10-22 19:05:19 Next refresh in 3581s
+2026-10-22 20:05:01 Refreshing (battery 32%)
+2026-10-22 20:05:21 Downloaded 55792 bytes (rendered 8:05 PM)
+2026-10-22 20:05:21 Next refresh in 3579s
+2026-10-22 21:05:00 Refreshing (battery 31%)
+2026-10-22 21:05:19 Downloaded 55465 bytes (rendered 9:05 PM)
+2026-10-22 21:05:19 Next refresh in 3581s
+2026-10-22 22:05:00 Refreshing (battery 30%)
+2026-10-22 22:05:18 Downloaded 56235 bytes (rendered 10:05 PM)
+2026-10-22 22:05:19 Next refresh in 3581s
+2026-10-22 23:05:00 Refreshing (battery 29%)
+2026-10-22 23:05:19 Downloaded 54438 bytes (rendered 11:05 PM)
+2026-10-22 23:05:19 Next refresh in 3281s
+2026-10-23 00:00:01 Night: sleeping 21599s until 6:00
+2026-10-23 06:00:01 Woke after 21597s of deep sleep
+2026-10-23 06:00:02 Good morning (screen cleaned)
+2026-10-23 06:00:02 Refreshing (battery 28%)
+2026-10-23 06:00:27 Downloaded 60329 bytes (rendered 6:00 AM)
+2026-10-23 06:00:27 Next refresh in 273s
+2026-10-23 06:05:00 Refreshing (battery 24%)
+2026-10-23 06:05:19 Downloaded 60534 bytes (rendered 6:05 AM)
+2026-10-23 06:05:20 Next refresh in 3580s
+2026-10-23 07:05:00 Refreshing (battery 24%)
+2026-10-23 07:05:20 Downloaded 60053 bytes (rendered 7:05 AM)
+2026-10-23 07:05:20 Next refresh in 580s
+2026-11-02 08:12:25 Start requested from KUAL
+2026-11-02 08:12:25 Starting dashboard (pid 7355)
+lab126_gui stop/waiting
+2026-11-02 08:12:29 Refreshing (battery 15%)
+2026-11-02 11:13:14 Self-check: version bb9774fe0890, BusyBox v1.34.1 (2026-02-12 06:41:57 UTC) multi-call binary.
+2026-11-02 11:13:15 Self-check: 14 tools found, tar unpacking yes, missing or failing: nothing
+2026-11-02 16:32:16 Start requested from KUAL
+2026-11-02 16:32:17 Update: bb9774fe0890 -> c80af24cdeaf
+2026-11-02 16:32:26 Update: installed c80af24cdeaf (0 files changed)
+2026-11-02 16:32:26 Starting dashboard (pid 8279)
+lab126_gui stop/waiting
+2026-11-02 16:32:31 Image is 341 minutes old; showing the stale banner
+2026-11-02 16:32:33 Watching /dev/input/event1 (pt_mt) for swipes and double taps
+2026-11-02 16:32:33 Update: c80af24cdeaf is running
+2026-11-02 16:32:33 Refreshing (battery 97%)
+2026-11-02 16:32:36 Swipe left: page 2 (menu)
+2026-11-02 16:32:54 Downloaded 56436 bytes (rendered 4:32 PM)
+2026-11-02 16:32:55 Next refresh in 1925s
+2026-11-02 17:05:00 Refreshing (battery 97%)
+2026-11-02 17:05:36 Downloaded 55153 bytes (rendered 5:05 PM)
+2026-11-02 17:05:37 Next refresh in 3563s
+2026-11-02 18:05:00 Refreshing (battery 96%)
+2026-11-02 18:05:21 Downloaded 56220 bytes (rendered 6:05 PM)
+2026-11-02 18:05:21 Next refresh in 3579s
+2026-11-02 19:05:00 Refreshing (battery 95%)
+2026-11-02 19:05:20 Downloaded 56660 bytes (rendered 7:05 PM)
+2026-11-02 19:05:21 Next refresh in 3579s
+2026-11-02 19:47:32 Swipe right: page 1 (dashboard)
+2026-11-02 19:47:36 Swipe left: page 2 (menu)
+2026-11-02 19:47:37 Swipe right: page 1 (dashboard)
+2026-11-02 19:47:45 Swipe left: page 2 (menu)
+2026-11-02 19:47:46 Swipe right: page 1 (dashboard)
+2026-11-02 19:47:53 Swipe left: page 2 (menu)
+2026-11-02 19:47:55 Swipe right: page 1 (dashboard)
+2026-11-02 19:47:56 Swipe left: page 2 (menu)
+2026-11-02 20:05:00 Refreshing (battery 95%)
+2026-11-02 20:05:21 Downloaded 56082 bytes (rendered 8:05 PM)
+2026-11-02 20:05:21 Next refresh in 3579s
+2026-11-02 21:05:00 Refreshing (battery 94%)
+2026-11-02 21:05:20 Downloaded 56085 bytes (rendered 9:05 PM)
+2026-11-02 21:05:21 Next refresh in 3579s
+2026-11-02 22:05:00 Refreshing (battery 93%)
+2026-11-02 22:05:21 Downloaded 54295 bytes (rendered 10:05 PM)
+2026-11-02 22:05:21 Next refresh in 3579s
+2026-11-02 23:05:00 Refreshing (battery 92%)
+2026-11-02 23:05:20 Downloaded 55493 bytes (rendered 11:05 PM)
+2026-11-02 23:05:21 Next refresh in 3279s
+2026-11-03 00:00:00 Night: sleeping 21600s until 6:00
+2026-11-03 06:00:01 Good morning (screen cleaned)
+2026-11-03 06:00:01 Refreshing (battery 90%)
+2026-11-03 06:00:01 Waiting for Wi-Fi (state: NA)
+2026-11-03 06:00:08 Wi-Fi connected after about 12s
+2026-11-03 06:00:28 Downloaded 59635 bytes (rendered 6:00 AM)
+2026-11-03 06:00:29 Next refresh in 271s
+2026-11-03 06:05:00 Refreshing (battery 90%)
+2026-11-03 06:05:20 Downloaded 59419 bytes (rendered 6:05 AM)
+2026-11-03 06:05:21 Next refresh in 3579s
+2026-11-03 07:05:00 Refreshing (battery 89%)
+2026-11-03 07:05:21 Downloaded 60003 bytes (rendered 7:05 AM)
+2026-11-03 07:05:22 Next refresh in 578s
+2026-11-03 07:15:00 Refreshing (battery 89%)
+2026-11-03 07:15:20 Downloaded 59758 bytes (rendered 7:15 AM)
+2026-11-03 07:15:21 Next refresh in 579s
+2026-11-03 07:25:00 Refreshing (battery 89%)
+2026-11-03 07:25:20 Downloaded 59723 bytes (rendered 7:25 AM)
+2026-11-03 07:25:21 Next refresh in 579s
+2026-11-03 07:35:00 Refreshing (battery 88%)
+2026-11-03 07:35:21 Downloaded 59690 bytes (rendered 7:35 AM)
+2026-11-03 07:35:21 Next refresh in 579s
+2026-11-03 07:45:00 Refreshing (battery 88%)
+2026-11-03 07:45:41 Downloaded 59716 bytes (rendered 7:45 AM)
+2026-11-03 07:45:42 Next refresh in 558s
+2026-11-03 07:55:00 Refreshing (battery 88%)
+2026-11-03 07:55:21 Downloaded 59625 bytes (rendered 7:55 AM)
+2026-11-03 07:55:21 Next refresh in 579s
+2026-11-03 08:05:00 Refreshing (battery 88%)
+2026-11-03 08:05:21 Downloaded 58835 bytes (rendered 8:05 AM)
+2026-11-03 08:05:21 Next refresh in 579s
+2026-11-03 08:15:00 Refreshing (battery 88%)
+curl: (22) The requested URL returned error: 502
+2026-11-03 08:15:30 Downloaded 58784 bytes (rendered 8:15 AM)
+2026-11-03 08:15:31 Next refresh in 569s
+2026-11-03 08:25:00 Refreshing (battery 88%)
+2026-11-03 08:25:21 Downloaded 59842 bytes (rendered 8:25 AM)
+2026-11-03 08:25:22 Next refresh in 578s
+2026-11-03 08:35:00 Refreshing (battery 88%)
+2026-11-03 08:35:20 Downloaded 61480 bytes (rendered 8:35 AM)
+2026-11-03 08:35:21 Next refresh in 579s
+2026-11-03 08:45:00 Refreshing (battery 87%)
+2026-11-03 08:45:21 Downloaded 60502 bytes (rendered 8:45 AM)
+2026-11-03 08:45:22 Next refresh in 578s
+2026-11-03 08:55:00 Refreshing (battery 87%)
+2026-11-03 08:55:20 Downloaded 60185 bytes (rendered 8:55 AM)
+2026-11-03 08:55:21 Next refresh in 579s
+2026-11-03 09:05:00 Refreshing (battery 87%)
+2026-11-03 09:05:20 Downloaded 59757 bytes (rendered 9:05 AM)
+2026-11-03 09:05:21 Next refresh in 579s
+2026-11-03 09:15:00 Refreshing (battery 87%)
+2026-11-03 09:15:21 Downloaded 60361 bytes (rendered 9:15 AM)
+2026-11-03 09:15:22 Next refresh in 578s
+2026-11-03 09:25:00 Refreshing (battery 87%)
+2026-11-03 09:25:21 Downloaded 59933 bytes (rendered 9:25 AM)
+2026-11-03 09:25:21 Next refresh in 579s
+2026-11-03 09:35:00 Refreshing (battery 87%)
+2026-11-03 09:35:37 Downloaded 59241 bytes (rendered 9:35 AM)
+2026-11-03 09:35:37 Next refresh in 563s
+2026-11-03 09:45:00 Refreshing (battery 87%)
+2026-11-03 09:45:21 Downloaded 58482 bytes (rendered 9:45 AM)
+2026-11-03 09:45:22 Next refresh in 578s
+2026-11-03 09:55:00 Refreshing (battery 86%)
+2026-11-03 09:55:20 Downloaded 59314 bytes (rendered 9:55 AM)
+2026-11-03 09:55:21 Next refresh in 579s
+2026-11-03 10:05:00 Refreshing (battery 86%)
+2026-11-03 10:05:36 Downloaded 56939 bytes (rendered 10:05 AM)
+2026-11-03 10:05:37 Next refresh in 3563s
+2026-11-03 11:05:00 Refreshing (battery 85%)
+2026-11-03 11:05:21 Downloaded 54443 bytes (rendered 11:05 AM)
+2026-11-03 11:05:22 Next refresh in 3578s
+2026-11-03 12:05:00 Refreshing (battery 85%)
+2026-11-03 12:05:37 Downloaded 53737 bytes (rendered 12:05 PM)
+2026-11-03 12:05:37 Next refresh in 3563s
+2026-11-03 13:05:00 Refreshing (battery 84%)
+2026-11-03 13:06:07 Downloaded 54101 bytes (rendered 1:05 PM)
+2026-11-03 13:06:07 Next refresh in 3533s
+2026-11-03 14:05:00 Refreshing (battery 83%)
+2026-11-03 14:06:38 Downloaded 54019 bytes (rendered 2:06 PM)
+2026-11-03 14:06:39 Next refresh in 3502s
+2026-11-03 15:05:00 Refreshing (battery 82%)
+2026-11-03 15:06:22 Downloaded 54578 bytes (rendered 3:05 PM)
+2026-11-03 15:06:23 Next refresh in 3517s
+2026-11-03 16:05:00 Refreshing (battery 82%)
+2026-11-03 16:05:35 Downloaded 54712 bytes (rendered 4:05 PM)
+2026-11-03 16:05:36 Next refresh in 3564s
+2026-11-03 17:05:00 Refreshing (battery 81%)
+2026-11-03 17:05:36 Downloaded 53297 bytes (rendered 5:05 PM)
+2026-11-03 17:05:36 Next refresh in 3564s
+2026-11-03 17:33:58 Swipe left: page 2 (menu)
+2026-11-03 18:05:00 Refreshing (battery 80%)
+2026-11-03 18:05:20 Downloaded 53233 bytes (rendered 6:05 PM)
+2026-11-03 18:05:21 Next refresh in 3579s
+2026-11-03 19:05:00 Refreshing (battery 79%)
+2026-11-03 19:05:21 Downloaded 52950 bytes (rendered 7:05 PM)
+2026-11-03 19:05:21 Next refresh in 3579s
+2026-11-03 20:05:00 Refreshing (battery 78%)
+2026-11-03 20:05:20 Downloaded 53254 bytes (rendered 8:05 PM)
+2026-11-03 20:05:21 Next refresh in 3579s
+2026-11-03 21:05:00 Refreshing (battery 78%)
+2026-11-03 21:05:20 Downloaded 54424 bytes (rendered 9:05 PM)
+2026-11-03 21:05:21 Next refresh in 3580s
+2026-11-03 22:05:00 Refreshing (battery 77%)
+2026-11-03 22:05:20 Downloaded 53335 bytes (rendered 10:05 PM)
+2026-11-03 22:05:21 Next refresh in 3579s
+2026-11-03 23:05:00 Refreshing (battery 76%)
+2026-11-03 23:05:20 Downloaded 52217 bytes (rendered 11:05 PM)
+2026-11-03 23:05:21 Next refresh in 3279s
+2026-11-04 00:00:00 Night: sleeping 21600s until 6:00
+2026-11-04 06:00:01 Good morning (screen cleaned)
+2026-11-04 06:00:01 Refreshing (battery 73%)
+2026-11-04 06:00:01 Waiting for Wi-Fi (state: NA)
+2026-11-04 06:00:04 Wi-Fi connected after about 8s
+2026-11-04 06:01:11 Downloaded 57801 bytes (rendered 6:00 AM)
+2026-11-04 06:01:12 Next refresh in 228s
+2026-11-04 06:05:00 Refreshing (battery 72%)
+2026-11-04 06:06:01 Downloaded 57766 bytes (rendered 6:05 AM)
+2026-11-04 06:06:01 Next refresh in 3539s
+2026-11-04 07:05:00 Refreshing (battery 72%)
+2026-11-04 07:05:21 Downloaded 57857 bytes (rendered 7:05 AM)
+2026-11-04 07:05:22 Next refresh in 578s
+2026-11-04 07:15:00 Refreshing (battery 71%)
+2026-11-04 07:15:21 Downloaded 57544 bytes (rendered 7:15 AM)
+2026-11-04 07:15:22 Next refresh in 578s
+2026-11-04 07:25:00 Refreshing (battery 71%)
+2026-11-04 07:25:21 Downloaded 57731 bytes (rendered 7:25 AM)
+2026-11-04 07:25:21 Next refresh in 579s
+2026-11-04 07:35:00 Refreshing (battery 71%)
+2026-11-04 07:35:21 Downloaded 57603 bytes (rendered 7:35 AM)
+2026-11-04 07:35:22 Next refresh in 578s
+2026-11-04 07:45:00 Refreshing (battery 71%)
+2026-11-04 07:45:22 Downloaded 57961 bytes (rendered 7:45 AM)
+2026-11-04 07:45:22 Next refresh in 578s
+2026-11-04 07:55:00 Refreshing (battery 71%)
+2026-11-04 07:55:22 Downloaded 58124 bytes (rendered 7:55 AM)
+2026-11-04 07:55:22 Next refresh in 578s
+2026-11-04 08:05:00 Refreshing (battery 70%)
+2026-11-04 08:05:37 Downloaded 59064 bytes (rendered 8:05 AM)
+2026-11-04 08:05:37 Next refresh in 563s
+2026-11-04 08:15:00 Refreshing (battery 70%)
+2026-11-04 08:15:37 Downloaded 58598 bytes (rendered 8:15 AM)
+2026-11-04 08:15:38 Next refresh in 562s
+2026-11-04 08:25:00 Refreshing (battery 70%)
+2026-11-04 08:25:21 Downloaded 58330 bytes (rendered 8:25 AM)
+2026-11-04 08:25:21 Next refresh in 579s
+2026-11-04 08:35:00 Refreshing (battery 70%)
+2026-11-04 08:35:37 Downloaded 58236 bytes (rendered 8:35 AM)
+2026-11-04 08:35:38 Next refresh in 562s
+2026-11-04 08:45:00 Refreshing (battery 70%)
+2026-11-04 08:45:37 Downloaded 58077 bytes (rendered 8:45 AM)
+2026-11-04 08:45:37 Next refresh in 563s
+2026-11-04 08:55:00 Refreshing (battery 69%)
+2026-11-04 08:55:22 Downloaded 58070 bytes (rendered 8:55 AM)
+2026-11-04 08:55:23 Next refresh in 577s
+2026-11-04 09:05:00 Refreshing (battery 69%)
+2026-11-04 09:05:36 Downloaded 59084 bytes (rendered 9:05 AM)
+2026-11-04 09:05:37 Next refresh in 563s
+2026-11-04 09:15:00 Refreshing (battery 69%)
+2026-11-04 09:15:21 Downloaded 58801 bytes (rendered 9:15 AM)
+2026-11-04 09:15:22 Next refresh in 578s
+2026-11-04 09:25:00 Refreshing (battery 69%)
+2026-11-04 09:25:21 Downloaded 59427 bytes (rendered 9:25 AM)
+2026-11-04 09:25:22 Next refresh in 578s
+2026-11-04 09:35:00 Refreshing (battery 69%)
+2026-11-04 09:35:21 Downloaded 59657 bytes (rendered 9:35 AM)
+2026-11-04 09:35:22 Next refresh in 578s
+2026-11-04 09:45:00 Refreshing (battery 68%)
+2026-11-04 09:45:21 Downloaded 57122 bytes (rendered 9:45 AM)
+2026-11-04 09:45:22 Next refresh in 578s
+2026-11-04 09:55:00 Refreshing (battery 68%)
+2026-11-04 09:55:37 Downloaded 57079 bytes (rendered 9:55 AM)
+2026-11-04 09:55:38 Next refresh in 562s
+2026-11-04 10:05:00 Refreshing (battery 68%)
+2026-11-04 10:05:38 Downloaded 58225 bytes (rendered 10:05 AM)
+2026-11-04 10:05:39 Next refresh in 3562s
+2026-11-04 11:05:00 Refreshing (battery 67%)
+2026-11-04 11:05:21 Downloaded 52731 bytes (rendered 11:05 AM)
+2026-11-04 11:05:22 Next refresh in 3578s
+2026-11-04 12:05:00 Refreshing (battery 66%)
+2026-11-04 12:05:37 Downloaded 53077 bytes (rendered 12:05 PM)
+2026-11-04 12:05:38 Next refresh in 3562s
+2026-11-04 13:05:00 Refreshing (battery 65%)
+2026-11-04 13:05:21 Downloaded 52924 bytes (rendered 1:05 PM)
+2026-11-04 13:05:22 Next refresh in 3578s
+2026-11-04 14:05:00 Refreshing (battery 64%)
+2026-11-04 14:05:21 Downloaded 53555 bytes (rendered 2:05 PM)
+2026-11-04 14:05:22 Next refresh in 3578s
+2026-11-04 15:05:00 Refreshing (battery 62%)
+2026-11-04 15:05:36 Downloaded 53825 bytes (rendered 3:05 PM)
+2026-11-04 15:05:37 Next refresh in 3563s
+2026-11-04 16:05:00 Refreshing (battery 61%)
+2026-11-04 16:05:21 Downloaded 53307 bytes (rendered 4:05 PM)
+2026-11-04 16:05:22 Next refresh in 3578s
+2026-11-04 17:05:00 Refreshing (battery 60%)
